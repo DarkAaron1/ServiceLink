@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css')}}">
-    <title>Responsive Dashboard Design #1 | AsmrProg</title>
+    <title>ServiceLink</title>
 </head>
 
 <body>
@@ -17,7 +17,7 @@
             <div class="toggle">
                 <div class="logo">
                     <!--img src="images/logo.png"-->
-                    <h2>Asmr<span class="danger">Prog</span></h2>
+                    <h2>Service<span class="primary">Link</span></h2>
                 </div>
                 <div class="close" id="close-btn">
                     <span class="material-icons-sharp">
@@ -27,7 +27,7 @@
             </div>
 
             <div class="sidebar">
-                <a href="#">
+                <a href="#" class="active">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
@@ -37,40 +37,40 @@
                     <span class="material-icons-sharp">
                         person_outline
                     </span>
-                    <h3>Users</h3>
+                    <h3>Colaboradores</h3>
                 </a>
                 <a href="#">
                     <span class="material-icons-sharp">
                         receipt_long
                     </span>
-                    <h3>History</h3>
+                    <h3>Ventas</h3>
                 </a>
-                <a href="#" class="active">
+                <a href="#">
                     <span class="material-icons-sharp">
                         insights
                     </span>
-                    <h3>Analytics</h3>
+                    <h3>Estadísticas</h3>
                 </a>
                 <a href="#">
                     <span class="material-icons-sharp">
                         mail_outline
                     </span>
-                    <h3>Tickets</h3>
+                    <h3>Comandas</h3>
                     <span class="message-count">27</span>
                 </a>
                 <a href="#">
                     <span class="material-icons-sharp">
                         inventory
                     </span>
-                    <h3>Sale List</h3>
+                    <h3>Menú</h3>
                 </a>
                 <a href="#">
                     <span class="material-icons-sharp">
-                        report_gmailerrorred
+                        table_restaurant
                     </span>
-                    <h3>Reports</h3>
+                    <h3>Mesas</h3>
                 </a>
-                <a href="#">
+                <!--<a href="#">
                     <span class="material-icons-sharp">
                         settings
                     </span>
@@ -81,7 +81,7 @@
                         add
                     </span>
                     <h3>New Login</h3>
-                </a>
+                </a>-->
                 <a href="#">
                     <span class="material-icons-sharp">
                         logout
@@ -100,7 +100,7 @@
                 <div class="sales">
                     <div class="status">
                         <div class="info">
-                            <h3>Total Sales</h3>
+                            <h3>Total Ingresos</h3>
                             <h1>$65,024</h1>
                         </div>
                         <div class="progresss">
@@ -108,7 +108,7 @@
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
                             <div class="percentage">
-                                <p>+81%</p>
+                                <p></p>
                             </div>
                         </div>
                     </div>
@@ -116,7 +116,7 @@
                 <div class="visits">
                     <div class="status">
                         <div class="info">
-                            <h3>Site Visit</h3>
+                            <h3>Productos Vendidos</h3>
                             <h1>24,981</h1>
                         </div>
                         <div class="progresss">
@@ -124,7 +124,7 @@
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
                             <div class="percentage">
-                                <p>-48%</p>
+                                <p></p>
                             </div>
                         </div>
                     </div>
@@ -132,15 +132,15 @@
                 <div class="searches">
                     <div class="status">
                         <div class="info">
-                            <h3>Searches</h3>
-                            <h1>14,147</h1>
+                            <h3>Producto Más Vendido</h3>
+                            <h1>Churrasco Italiano</h1>
                         </div>
                         <div class="progresss">
                             <svg>
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
                             <div class="percentage">
-                                <p>+21%</p>
+                                <p>1,500</p>
                             </div>
                         </div>
                     </div>
@@ -150,7 +150,7 @@
 
             <!-- New Users Section -->
             <div class="new-users">
-                <h2>New Users</h2>
+                <h2>Usuarios Activos</h2>
                 <div class="user-list">
                     <div class="user">
                         <!--img src="images/profile-2.jpg"-->
@@ -178,14 +178,14 @@
 
             <!-- Recent Orders Table -->
             <div class="recent-orders">
-                <h2>Recent Orders</h2>
+                <h2>Ordenes Recientes</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>Course Name</th>
-                            <th>Course Number</th>
-                            <th>Payment</th>
-                            <th>Status</th>
+                            <th>Mesa</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Estado</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -217,7 +217,7 @@
 
                 <div class="profile">
                     <div class="info">
-                        <p>Hey, <b>Reza</b></p>
+                        <p>Bienvenido, <b>Usuario</b></p>
                         <small class="text-muted">Admin</small>
                     </div>
                     <div class="profile-photo">
@@ -231,8 +231,8 @@
             <div class="user-profile">
                 <div class="logo">
                     <img src="images/logo.png">
-                    <h2>AsmrProg</h2>
-                    <p>Fullstack Web Developer</p>
+                    <h2>ServiceLink</h2>
+                    <p>Dueño de Restaurante</p>
                 </div>
             </div>
 
