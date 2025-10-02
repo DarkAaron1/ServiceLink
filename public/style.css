@@ -182,7 +182,7 @@ aside .sidebar a span{
 aside .sidebar a:last-child{
     position: absolute;
     bottom: 2rem;
-    width: 100%;
+    width: 100%; /* hola */
 }
 
 aside .sidebar a.active{
