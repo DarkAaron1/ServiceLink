@@ -190,6 +190,7 @@ aside .sidebar a.active{
     color: var(--color-primary);
     background-color: var(--color-light);
     margin-left: 0;
+    border-radius: 15px; /* Bordes redondeados añadidos */
 }
 
 aside .sidebar a.active::before{
