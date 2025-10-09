@@ -16,7 +16,7 @@
         <aside>
             <div class="toggle">
                 <div class="logo">
-                    <!--img src="images/logo.png"-->
+                    <img src="{{ asset('favicon.ico') }}">
                     <h2>Service<span class="primary">Link</span></h2>
                 </div>
                 <div class="close" id="close-btn">
@@ -70,6 +70,7 @@
                     </span>
                     <h3>Mesas</h3>
                 </a>
+                </a>
                 <!--<a href="#">
                     <span class="material-icons-sharp">
                         settings
@@ -94,7 +95,7 @@
 
         <!-- Main Content -->
         <main>
-            <h1>Analytics</h1>
+            <h1>Dashboard</h1>
             <!-- Analyses -->
             <div class="analyse">
                 <div class="sales">
@@ -216,14 +217,14 @@
                 </div>
 
                 <div class="profile">
-                    <div class="info">
-                        <p>Bienvenido, <b>Usuario</b></p>
-                        <small class="text-muted">Admin</small>
+                        <div class="info">
+                            <p>Bienvenido, <b>Usuario</b></p>
+                            <small class="text-muted">Admin</small>
+                        </div>
+                        <!--div class="profile-photo">
+                            <img src="{{ asset('favicon.ico') }}">
+                        </div-->
                     </div>
-                    <div class="profile-photo">
-                        <img src="images/profile-1.jpg">
-                    </div>
-                </div>
 
             </div>
             <!-- End of Nav -->
@@ -238,7 +239,7 @@
 
             <div class="reminders">
                 <div class="header">
-                    <h2>Reminders</h2>
+                    <h2>Notificaciones</h2>
                     <span class="material-icons-sharp">
                         notifications_none
                     </span>
