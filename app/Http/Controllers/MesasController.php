@@ -12,9 +12,13 @@ class MesasController extends Controller
      */
     public function index()
     {
+<<<<<<< HEAD
        /*  $mesas = Mesas::with('restaurante')->get();
         return view('mesas.index', compact('mesas')); */
         return view('mesas.index');
+=======
+        //
+>>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
     }
 
     /**
@@ -30,6 +34,7 @@ class MesasController extends Controller
      */
     public function store(Request $request)
     {
+<<<<<<< HEAD
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'estado' => 'required|string|max:255',
@@ -43,6 +48,9 @@ class MesasController extends Controller
         $table->save();
 
         return redirect()->route('mesas.index')->with('success', 'Mesa creada exitosamente.');
+=======
+        //
+>>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
     }
 
     /**
@@ -50,7 +58,11 @@ class MesasController extends Controller
      */
     public function show(Mesas $mesas)
     {
+<<<<<<< HEAD
         return response()->json(Mesas::findOrFail($mesas->id));
+=======
+        //
+>>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
     }
 
     /**

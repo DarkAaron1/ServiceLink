@@ -109,35 +109,29 @@
                     </button>
                 </div>
 
-                <div class="mesas-grid" style="display:flex; flex-wrap:wrap; gap:1rem; margin-top:1rem;">
+                <div class="mesas-grid">
                     @if (isset($mesas) && $mesas->count())
                         @foreach ($mesas as $mesa)
-                            <div class="mesa-card notification" data-id="{{ $mesa->id }}"
-                                style="border:1px solid #e9eef6; padding:1rem; border-radius:8px; background:#fafcff; min-width:220px; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div class="mesa-card estado-{{ strtolower($mesa->estado) }}" data-id="{{ $mesa->id }}">
                                 <div class="icon">
-                                    <span class="material-icons-sharp"
-                                        style="font-size:28px; color:#1976d2;">table_restaurant</span>
+                                    <span class="material-icons-sharp">table_restaurant</span>
                                 </div>
-                                <div class="content" style="flex:1;">
-                                    <div class="info"
-                                        style="display:flex; align-items:center; justify-content:space-between;">
-                                        <h3 style="margin:0; font-size:1.05rem;">{{ $mesa->nombre }}</h3>
-                                        <span class="badge-estado"
-                                            style="padding:.25rem .5rem; border-radius:999px; font-size:.8rem; font-weight:600;">
-                                            {{ $mesa->estado }}
-                                        </span>
+                                <h3>{{ $mesa->nombre }}</h3>
+                                <div class="estado-container">
+                                    <div class="estado-indicador">
+                                        {{ $mesa->estado }}
                                     </div>
-                                    <p style="margin:.5rem 0 0 0; color:#666; font-size:.9rem;">ID:
-                                        {{ $mesa->id }}</p>
                                 </div>
-                                <div style="display:flex; gap:.5rem; margin-top:1rem;">
-                                    <button class="select-mesa-btn"
-                                        style="flex:1; padding:.5rem; border-radius:6px; border:1px solid #1976d2; background:#fff; color:#1976d2;">Seleccionar</button>
-                                    <form method="POST" action="{{ url('/mesas/' . $mesa->id) }}" style="margin:0;">
+                                <div class="mesa-actions">
+                                    <button class="mesa-btn edit">
+                                        <span class="material-icons-sharp">edit</span>
+                                    </button>
+                                    <form method="POST" action="{{ url('/mesas/' . $mesa->id) }}" style="flex:1; margin:0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit"
-                                            style="background:#f44336;color:#fff;border:none;padding:.45rem .6rem;border-radius:6px;">Eliminar</button>
+                                        <button type="submit" class="mesa-btn delete">
+                                            <span class="material-icons-sharp">delete</span>
+                                        </button>
                                     </form>
                                 </div>
                             </div>

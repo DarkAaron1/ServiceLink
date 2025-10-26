@@ -169,33 +169,139 @@
 }
 
 .button-Add:hover {
-    box-shadow: 0 2rem 3rem rgba(25, 118, 210, 0.08); /* sombra  */
+    box-shadow: 0 2rem 3rem rgba(25, 118, 210, 0.08);
 }
 
-/* Efecto circular */
-.button-Add::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 0;
-    height: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, transparent 60%);
-    transform: translate(-50%, -50%) scale(0);
-    border-radius: 50%;
-    transition: width 0.45s cubic-bezier(.2,.9,.2,1), height 0.45s cubic-bezier(.2,.9,.2,1), transform 0.45s cubic-bezier(.2,.9,.2,1), opacity 0.45s;
-    pointer-events: none;
-    opacity: 0;
+/* Estilos para las mesas */
+.mesas-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    justify-content: center;
 }
 
-.button-Add:hover::after {
-    width: 300px;
+.mesa-card {
+    width: 150px;
     height: 300px;
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Variación más sutil en dispositivos pequeños */
+.mesa-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mesa-card.estado-disponible {
+    background: #e8f5e9;
+}
+
+.mesa-card.estado-ocupada {
+    background: #ffebee;
+}
+
+.mesa-card.estado-reservada {
+    background: #fff8e1;
+}
+
+.mesa-card .icon {
+    margin-bottom: 1rem;
+}
+
+.mesa-card .icon span {
+    font-size: 48px;
+    color: #424242;
+}
+
+.mesa-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    text-align: center;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.estado-container {
+    width: 100%;
+    margin-bottom: auto;
+}
+
+.estado-indicador {
+    padding: 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.estado-disponible .estado-indicador {
+    background: #4caf50;
+}
+
+.estado-ocupada .estado-indicador {
+    background: #f44336;
+}
+
+.estado-reservada .estado-indicador {
+    background: #ffc107;
+}
+
+.mesa-actions {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.mesa-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.mesa-btn:hover {
+    opacity: 0.9;
+}
+
+.mesa-btn.edit {
+    background: #2196f3;
+}
+
+.mesa-btn.delete {
+    background: #f44336;
+}
+
+.mesa-btn span {
+    font-size: 16px;
+}
+
+/* Responsive adjustments */
 @media (max-width: 480px) {
-    .button-Add:hover::after { width: 220px; height: 220px; }
+    .mesa-card {
+        width: 130px;
+        height: 280px;
+        padding: 1rem;
+    }
+    
+    .mesa-card .icon span {
+        font-size: 40px;
+    }
+    
+    .mesa-card h3 {
+        font-size: 1rem;
+    }
 }
