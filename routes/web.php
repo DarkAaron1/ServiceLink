@@ -5,18 +5,17 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
-    return view('login');
+    return view('Demo.index');
 });
 
-Route::get('/newhome',function(){
-    return view('Demo.index');
-}); 
 
 Route::get('/login',function(){
-    return view('login');
+    return view('Demo.login');
 });
 
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::get('/register',function(){
+    return view('Demo.register');
+});
 
 // ruta de bienvenida (a donde redirige el login)
 Route::get('/welcome', function () {
