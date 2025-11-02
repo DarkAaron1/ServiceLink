@@ -12,7 +12,9 @@ class MesasController extends Controller
      */
     public function index()
     {
-        //
+       /*  $mesas = Mesas::with('restaurante')->get();
+        return view('mesas.index', compact('mesas')); */
+        return view('mesas.index');
     }
 
     /**
@@ -28,7 +30,19 @@ class MesasController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'estado' => 'required|string|max:255',
+            'restaurante_id' => 'required|exists:restaurantes,id',
+        ]);
+
+        $table = new Mesas();
+        $table->nombre = $data['nombre'];
+        $table->estado = $data['estado'];
+        $table->restaurante_id = $data['restaurante_id'];
+        $table->save();
+
+        return redirect()->route('mesas.index')->with('success', 'Mesa creada exitosamente.');
     }
 
     /**
@@ -36,7 +50,7 @@ class MesasController extends Controller
      */
     public function show(Mesas $mesas)
     {
-        //
+        return response()->json(Mesas::findOrFail($mesas->id));
     }
 
     /**

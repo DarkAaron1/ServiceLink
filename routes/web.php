@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MesasController;
 
 Route::get('/', function () {
     return view('login');
@@ -30,3 +31,6 @@ Route::get('/admin', [UsuariosController::class, 'index'])->name('admin.index');
 Route::post('/usuarios', [UsuariosController::class, 'store'])->name('usuarios.store');
 Route::get('/usuarios/{usuarios}', [UsuariosController::class, 'show'])->name('usuarios.show');
 Route::patch('/usuarios/{usuarios}', [UsuariosController::class, 'update'])->name('usuarios.update');
+
+// rutas para mesas
+Route::get('/mesas', [MesasController::class, 'index'])->name('Mesas.index');

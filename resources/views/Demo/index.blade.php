@@ -64,7 +64,7 @@
                     </span>
                     <h3>Menú</h3>
                 </a>
-                <a href="#">
+                <a href="{{ route('Mesas.index') }}">
                     <span class="material-icons-sharp">
                         table_restaurant
                     </span>
