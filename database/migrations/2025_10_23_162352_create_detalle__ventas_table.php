@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('detalle__ventas', function (Blueprint $table) {
             $table->id();
+            $table->integer('total_venta');
+            $table->integer('cantidad_items');
+            $table->unsignedBigInteger('comanda_id');
+            $table->unsignedBigInteger('pedido_id');
             $table->timestamps();
+
+            $table->foreign('comanda_id')->references('id')->on('comandas')->onDelete('cascade');
+            $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
         });
     }
 
