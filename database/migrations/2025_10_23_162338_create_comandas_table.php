@@ -13,15 +13,7 @@ return new class extends Migration
     {
         Schema::create('comandas', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('fecha_apertura')->useCurrent();
-            $table->dateTime('fecha_cierre')->nullable();
-            $table->string('estado')->default('abierta');
-            $table->unsignedBigInteger('usuario_id');
-            $table->unsignedBigInteger('mesa_id');
             $table->timestamps();
-
-            $table->foreign('usuario_id')->references('id')->on('usuarios')->onDelete('cascade');
-            $table->foreign('mesa_id')->references('id')->on('mesas')->onDelete('cascade');
         });
     }
 
