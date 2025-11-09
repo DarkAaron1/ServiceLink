@@ -12,18 +12,11 @@ class MesasController extends Controller
      */
     public function index()
     {
-<<<<<<< HEAD
-       /*  $mesas = Mesas::with('restaurante')->get();
-        return view('mesas.index', compact('mesas')); */
-        return view('mesas.index');
-=======
-        //
->>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
+        $mesas = Mesas::with('restaurante')->get();
+        return view('mesas.index', compact('mesas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
         //
@@ -34,23 +27,38 @@ class MesasController extends Controller
      */
     public function store(Request $request)
     {
-<<<<<<< HEAD
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'estado' => 'required|string|max:255',
-            'restaurante_id' => 'required|exists:restaurantes,id',
+            'estado' => 'required|string|in:Disponible,Ocupada,Reservada',
         ]);
 
-        $table = new Mesas();
-        $table->nombre = $data['nombre'];
-        $table->estado = $data['estado'];
-        $table->restaurante_id = $data['restaurante_id'];
-        $table->save();
+        try {
+            $mesa = new Mesas();
+            $mesa->nombre = $data['nombre'];
+            $mesa->estado = $data['estado'];
+            // Temporalmente asignamos un restaurante_id fijo (deberías ajustar esto según tu lógica de negocio)
+            $mesa->restaurante_id = 1;
+            $mesa->save();
 
-        return redirect()->route('mesas.index')->with('success', 'Mesa creada exitosamente.');
-=======
-        //
->>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mesa creada exitosamente',
+                    'mesa' => $mesa
+                ]);
+            }
+
+            return redirect()->route('mesas.index')->with('success', 'Mesa creada exitosamente.');
+        } catch (\Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear la mesa',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Error al crear la mesa: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -58,11 +66,7 @@ class MesasController extends Controller
      */
     public function show(Mesas $mesas)
     {
-<<<<<<< HEAD
         return response()->json(Mesas::findOrFail($mesas->id));
-=======
-        //
->>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
     }
 
     /**
@@ -76,16 +80,54 @@ class MesasController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Mesas $mesas)
+    public function update(Request $request, int $id)
     {
-        //
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'estado' => 'required|string|in:Disponible,Ocupada,Reservada',
+        ]);
+
+        try {
+            $mesa = Mesas::findOrFail($id);
+            $mesa->nombre = $data['nombre'];
+            $mesa->estado = $data['estado'];
+            $mesa->save();
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Mesa actualizada correctamente.', 'mesa' => $mesa]);
+            }
+
+            return redirect()->route('mesas.index')->with('success', 'Mesa actualizada correctamente.');
+        } catch (\Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al actualizar la mesa',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Error al actualizar la mesa: ' . $e->getMessage());
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Mesas $mesas)
+   public function destroy($id)
     {
-        //
+        // Buscar la mesa por su ID
+        $mesa = Mesas::find($id);
+
+        // Verificar si existe
+        if (!$mesa) {
+            return redirect()->route('mesas.index')->with('error', 'La mesa no fue encontrada.');
+        }
+
+        // Eliminar la mesa
+        $mesa->delete();
+
+        // Redirigir con mensaje de éxito
+        return redirect()->route('mesas.index')->with('success', 'Mesa eliminada correctamente.');
     }
 }

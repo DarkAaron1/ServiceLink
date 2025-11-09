@@ -33,4 +33,7 @@ Route::get('/usuarios/{usuarios}', [UsuariosController::class, 'show'])->name('u
 Route::patch('/usuarios/{usuarios}', [UsuariosController::class, 'update'])->name('usuarios.update');
 
 // rutas para mesas
-Route::get('/mesas', [MesasController::class, 'index'])->name('Mesas.index');
+Route::get('/mesas', [MesasController::class, 'index'])->name('mesas.index');
+Route::post('/mesas', [MesasController::class, 'store'])->name('mesas.store');
+Route::patch('/mesas/{id}', [MesasController::class, 'update'])->name('mesas.update');
+Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas.destroy');

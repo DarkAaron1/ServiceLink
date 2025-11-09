@@ -16,11 +16,11 @@ return new class extends Migration
             $table->dateTime('fecha_apertura')->useCurrent();
             $table->dateTime('fecha_cierre')->nullable();
             $table->string('estado')->default('abierta');
-            $table->unsignedBigInteger('usuario_id');
+            $table->string('rut_usuario');
             $table->unsignedBigInteger('mesa_id');
             $table->timestamps();
 
-            $table->foreign('usuario_id')->references('id')->on('usuarios')->onDelete('cascade');
+            $table->foreign('rut_usuario')->references('rut')->on('usuarios')->onDelete('cascade');
             $table->foreign('mesa_id')->references('id')->on('mesas')->onDelete('cascade');
         });
     }

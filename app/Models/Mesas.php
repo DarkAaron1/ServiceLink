@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-<<<<<<< HEAD
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Testing\Fluent\Concerns\Has;
@@ -26,11 +25,4 @@ class Mesas extends Model
     {
         return $this->hasMany(Comanda::class);
     }
-=======
-use Illuminate\Database\Eloquent\Model;
-
-class Mesas extends Model
-{
-    //
->>>>>>> c66f546 (Creación MCR Sistema (actualizado hasta items_menu))
 }

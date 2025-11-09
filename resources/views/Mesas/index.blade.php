@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('style-tables.css') }}">
     <title>ServiceLink</title>
-<style>
-    
-</style>
+    <style>
+
+    </style>
 </head>
 
 <body>
@@ -68,7 +69,7 @@
                     </span>
                     <h3>Menú</h3>
                 </a>
-                <a href="{{ route('Mesas.index') }}" class="active">
+                <a href="{{ route('mesas.index') }}" class="active">
                     <span class="material-icons-sharp">
                         table_restaurant
                     </span>
@@ -123,13 +124,16 @@
                                     </div>
                                 </div>
                                 <div class="mesa-actions">
-                                    <button class="mesa-btn edit">
+                                    <button class="mesa-btn edit"
+                                        onclick="openEditModal({{ $mesa->id }}, '{{ $mesa->nombre }}', '{{ $mesa->estado }}')">
                                         <span class="material-icons-sharp">edit</span>
                                     </button>
-                                    <form method="POST" action="{{ url('/mesas/' . $mesa->id) }}" style="flex:1; margin:0;">
+                                    <form method="POST" action="{{ route('mesas.destroy', $mesa->id) }}"
+                                        style="flex:1; margin:0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="mesa-btn delete">
+                                        <button type="submit" class="mesa-btn delete"
+                                            onclick="return confirm('¿Estás seguro de que deseas eliminar esta mesa?')">
                                             <span class="material-icons-sharp">delete</span>
                                         </button>
                                     </form>
@@ -144,7 +148,8 @@
 
             <!-- Modal para nueva mesa -->
             <div>
-                <div id="mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1">
+                <div id="mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true"
+                    tabindex="-1">
                     <div class="modal-content">
                         <button id="close-modal">
                             <span class="material-icons-sharp">close</span>
@@ -158,19 +163,21 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <label for="nombre">Nombre de la mesa</label>
-                                    <input id="nombre" name="nombre" required placeholder="Ej: Mesa 1" autocomplete="off">
+                                    <input id="nombre" name="nombre" required placeholder="Ej: Mesa 1"
+                                        autocomplete="off">
                                 </div>
                                 <div class="input-group">
                                     <label for="estado">Estado</label>
                                     <select id="estado" name="estado" required class="estado">
-                                        <option value="Disponible" >Disponible</option>
+                                        <option value="Disponible">Disponible</option>
                                         <option value="Ocupada">Ocupada</option>
                                         <option value="Reservada">Reservada</option>
                                     </select>
                                 </div>
                                 <div class="form-actions">
                                     <button type="button" id="cancel-mesa">Cancelar</button>
-                                    <button type="submit">Crear Mesa</button>
+                                    <button type="submit" id="crear-mesa-btn" class="submit-btn"> Crear Mesa
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -178,69 +185,47 @@
                 </div>
             </div>
 
-            <script>
-                // JS para modal y selección de mesas
-                (function() {
-                    const newBtn = document.getElementById('new-mesa-btn');
-                    const modal = document.getElementById('mesa-modal');
-                    const closeModal = document.getElementById('close-modal');
-                    const cancelMesa = document.getElementById('cancel-mesa');
-
-                    function openModal() {
-                        if (!modal) return;
-                        modal.style.display = 'flex';
-                        modal.setAttribute('aria-hidden', 'false');
-                        // focus primer campo
-                        const firstInput = modal.querySelector('#nombre');
-                        if (firstInput) firstInput.focus();
-                    }
-
-                    function hideModal() {
-                        if (!modal) return;
-                        modal.style.display = 'none';
-                        modal.setAttribute('aria-hidden', 'true');
-                        // devolver foco al botón que abre el modal
-                        if (newBtn) newBtn.focus();
-                    }
-
-                    if (newBtn) newBtn.addEventListener('click', openModal);
-                    if (closeModal) closeModal.addEventListener('click', hideModal);
-                    if (cancelMesa) cancelMesa.addEventListener('click', hideModal);
-
-                    // Cerrar al hacer click fuera del contenido
-                    modal && modal.addEventListener('click', function(e) {
-                        if (e.target === modal) hideModal();
-                    });
-
-                    // Seleccionar mesa (cliente-side toggle). Puedes extender para enviar al servidor.
-                    document.querySelectorAll('.select-mesa-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const card = this.closest('.mesa-card');
-                            if (!card) return;
-                            // toggle visual
-                            card.classList.toggle('selected');
-                            if (card.classList.contains('selected')) {
-                                card.style.background = '#e3f2fd';
-                                this.textContent = 'Seleccionada';
-                            } else {
-                                card.style.background = '';
-                                this.textContent = 'Seleccionar';
-                            }
-                        });
-                    });
-
-                    // Intercepción opcional del submit para agregar la nueva mesa al DOM sin recargar
-                    const form = document.getElementById('mesa-form');
-                    if (form) {
-                        form.addEventListener('submit', function(e) {
-                            // Dejar que el formulario haga la petición al servidor por defecto.
-                            // Si quieres manejo AJAX, descomenta lo siguiente y añade la lógica fetch.
-                            // e.preventDefault();
-                            // TODO: enviar por fetch y al completar añadir tarjeta a .mesas-grid
-                        });
-                    }
-                })();
-            </script>
+            <!-- Modal para editar mesa -->
+            <div>
+                <div id="editar-mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true"
+                    tabindex="-1">
+                    <div class="modal-content">
+                        <button id="close-modal">
+                            <span class="material-icons-sharp">close</span>
+                        </button>
+                        <div class="modal-header">
+                            <span class="modal-icon material-icons-sharp">table_restaurant</span>
+                            <h2>Editar Mesa</h2>
+                        </div>
+                        <form id="editar-mesa-form" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <label for="edit-nombre">Nombre de la mesa</label>
+                                    <input id="edit-nombre" name="nombre" required placeholder="Ej: Mesa 1"
+                                        autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <label for="edit-estado">Estado</label>
+                                    <select id="edit-estado" name="estado" required class="estado">
+                                        <option value="Disponible">Disponible</option>
+                                        <option value="Ocupada">Ocupada</option>
+                                        <option value="Reservada">Reservada</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" id="cancel-edit-mesa">Cancelar</button>
+                                    <button type="submit" id="editar-mesa-btn" class="submit-btn">
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!--Fin  Modal para crear mesa -->
 
         </main>
         <!-- End of Main Content -->
@@ -347,6 +332,175 @@
 
     <!-- <script src="orders.js"></script> -->
     <script src="{{ asset('index.js') }}"></script>
+    <script>
+        // JS para modal y selección de mesas
+        (function() {
+            const newBtn = document.getElementById('new-mesa-btn');
+            const modal = document.getElementById('mesa-modal');
+            const closeModal = document.getElementById('close-modal');
+            const cancelMesa = document.getElementById('cancel-mesa');
+
+            function openModal() {
+                if (!modal) return;
+                modal.style.display = 'flex';
+                modal.setAttribute('aria-hidden', 'false');
+                // focus primer campo
+                const firstInput = modal.querySelector('#nombre');
+                if (firstInput) firstInput.focus();
+            }
+
+            function hideModal() {
+                if (!modal) return;
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                // devolver foco al botón que abre el modal
+                if (newBtn) newBtn.focus();
+            }
+
+            if (newBtn) newBtn.addEventListener('click', openModal);
+            if (closeModal) closeModal.addEventListener('click', hideModal);
+            if (cancelMesa) cancelMesa.addEventListener('click', hideModal);
+
+            // Referencias a elementos del modal de editar
+            const editModal = document.getElementById('editar-mesa-modal');
+            const editCloseBtn = editModal.querySelector('#close-modal');
+            const cancelEditBtn = document.getElementById('cancel-edit-mesa');
+            const editForm = document.getElementById('editar-mesa-form');
+            const editNombreInput = document.getElementById('edit-nombre');
+            const editEstadoSelect = document.getElementById('edit-estado');
+
+            // Funciones para el modal de editar
+            window.openEditModal = function(id, nombre, estado) {
+                if (!editModal) return;
+
+                // Configurar el formulario
+                editForm.action = `/mesas/${id}`;
+                editNombreInput.value = nombre;
+                editEstadoSelect.value = estado;
+
+                // Mostrar el modal
+                editModal.style.display = 'flex';
+                editModal.setAttribute('aria-hidden', 'false');
+                editNombreInput.focus();
+
+                // Guardar los valores originales para comparar cambios
+                editForm.dataset.originalNombre = nombre;
+                editForm.dataset.originalEstado = estado;
+            }
+
+            function hideEditModal() {
+                if (!editModal) return;
+                editModal.style.display = 'none';
+                editModal.setAttribute('aria-hidden', 'true');
+                if (editForm) editForm.reset();
+            }
+
+            // Event listeners para el modal de editar
+            editCloseBtn.addEventListener('click', hideEditModal);
+            cancelEditBtn.addEventListener('click', hideEditModal);
+            editModal.addEventListener('click', function(e) {
+                if (e.target === editModal) hideEditModal();
+            });
+
+            // Cerrar al hacer click fuera del contenido
+            modal && modal.addEventListener('click', function(e) {
+                if (e.target === modal) hideModal();
+            });
+
+            // Manejar cambios en los campos del formulario de edición
+            editNombreInput.addEventListener('input', validateChanges);
+            editEstadoSelect.addEventListener('change', validateChanges);
+
+            function validateChanges() {
+                const submitBtn = document.getElementById('editar-mesa-btn');
+                const hasChanges =
+                    editNombreInput.value !== editForm.dataset.originalNombre ||
+                    editEstadoSelect.value !== editForm.dataset.originalEstado;
+
+                submitBtn.disabled = !hasChanges;
+            }
+
+            // Manejar el envío del formulario de edición
+            if (editForm) {
+                editForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const submitBtn = document.getElementById('editar-mesa-btn');
+
+                    try {
+                        submitBtn.disabled = true;
+                        const formData = new FormData(editForm);
+                        formData.append('_method', 'PATCH');
+                        const mesaId = editForm.action.split('/').pop();
+
+                        const response = await fetch(`/mesas/${mesaId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.message || 'Error al actualizar la mesa');
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Actualizar la tarjeta en la interfaz
+                            const mesaCard = document.querySelector(`.mesa-card[data-id="${mesaId}"]`);
+                            if (mesaCard) {
+                                mesaCard.querySelector('h3').textContent = formData.get('nombre');
+                                mesaCard.className =
+                                    `mesa-card estado-${formData.get('estado').toLowerCase()}`;
+                                mesaCard.querySelector('.estado-indicador').textContent = formData.get(
+                                    'estado');
+
+                                // Actualizar el botón de editar con los nuevos datos
+                                const editBtn = mesaCard.querySelector('.edit');
+                                editBtn.setAttribute('onclick',
+                                    `openEditModal(${mesaId}, '${formData.get('nombre')}', '${formData.get('estado')}')`
+                                    );
+                            }
+
+                            // Cerrar modal y mostrar mensaje de éxito
+                            hideEditModal();
+
+                        } else {
+                            throw new Error(data.message || 'Error al actualizar la mesa');
+                        }
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(error.message ||
+                            'Error al actualizar la mesa. Por favor, intente nuevamente.');
+                    } finally {
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Seleccionar mesa (cliente-side toggle)
+            document.querySelectorAll('.select-mesa-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.mesa-card');
+                    if (!card) return;
+                    // toggle visual
+                    card.classList.toggle('selected');
+                    if (card.classList.contains('selected')) {
+                        card.style.background = '#e3f2fd';
+                        this.textContent = 'Seleccionada';
+                    } else {
+                        card.style.background = '';
+                        this.textContent = 'Seleccionar';
+                    }
+                });
+            });
+        })();
+    </script>
 </body>
 
 </html>
