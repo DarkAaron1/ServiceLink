@@ -379,6 +379,25 @@ main .recent-orders a{
     color: var(--color-primary);
 }
 
+/* Inicio estilos de Mantenedor Mesas */
+main .management-tables {
+    background-color: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    margin-top: 1rem;
+    box-shadow: var(--box-shadow);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+main .management-tables:hover {
+    box-shadow: none; /* sombra  */
+}
+
+
+/* Fin estilos mantenedor Mesas*/
+
 .right-section{
     margin-top: 1.4rem;
 }
