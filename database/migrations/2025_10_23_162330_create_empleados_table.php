@@ -19,12 +19,13 @@ return new class extends Migration
             $table->integer('fono');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('cargo');
+            $table->string('cargo'); //hace referencia al nombre del rol en la tabla roles
             $table->string('estado')->default('inactivo');
             $table->unsignedBigInteger('restaurante_id');
             $table->rememberToken();
             $table->timestamps();
 
+            $table->foreign('cargo')->references('nombre')->on('roles')->onDelete('cascade');
             $table->foreign('restaurante_id')->references('id')->on('restaurantes')->onDelete('cascade');
         });
     }
