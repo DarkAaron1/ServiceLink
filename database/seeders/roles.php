@@ -14,12 +14,11 @@ class roles extends Seeder
     {
         
         // Crear roles predeterminados, y los dropea en caso de que ya existan
-        \DB::table('roles')->truncate();
         \DB::table('roles')->insert([
-            ['nombre' => 'admin', 'descripcion' => 'Administrador del sistema'],
-            ['nombre' => 'mesero', 'descripcion' => 'Mesero del restaurante'],
-            ['nombre' => 'cocinero', 'descripcion' => 'Cocinero del restaurante'],
-            ['nombre' => 'recepcionista', 'descripcion' => 'Recepcionista del restaurante'],
+            ['nombre' => 'Admin', 'descripcion' => 'Administrador del sistema'],
+            ['nombre' => 'Mesero', 'descripcion' => 'Mesero del restaurante'],
+            ['nombre' => 'Cocinero', 'descripcion' => 'Cocinero del restaurante'],
+            ['nombre' => 'Recepcionista', 'descripcion' => 'Recepcionista del restaurante'],
         ]);
     }
 }
