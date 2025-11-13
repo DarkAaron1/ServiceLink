@@ -110,13 +110,15 @@
     transition: background 0.2s, color 0.2s;
 }
 
-#cancel-mesa, #cancel-edit-mesa {
+#cancel-mesa,
+#cancel-edit-mesa {
     border: 1.5px solid #bdbdbd;
     background: #fff;
     color: #555;
 }
 
-#cancel-mesa:hover,  #cancel-edit-mesa {
+#cancel-mesa:hover,
+#cancel-edit-mesa {
     background: #f5f5f5;
 }
 
@@ -173,7 +175,7 @@
     gap: 0.5rem;
     padding: 0.55rem 1.2rem;
     border-radius: 8px;
-    background: #1976d2;
+    background: var(--color-primary, #0b74de);
     color: #fff;
     border: none;
     font-weight: 600;
@@ -183,11 +185,10 @@
     transition: all 0.4s ease;
     position: relative; /* necesario para el efecto circular */
     overflow: hidden;
-    
 }
 
 .button-Add:hover {
-    box-shadow: 0 2rem 3rem rgba(25, 118, 210, 0.08);
+    box-shadow: 0 6px 18px rgba(11, 116, 222, 0.14);
 }
 
 /* Estilos para las mesas */
@@ -276,7 +277,7 @@
     justify-content: center;
     gap: 0.5rem;
     margin-top: auto;
-   padding-bottom: 10px;
+    padding-bottom: 10px;
 }
 
 .mesa-btn {
@@ -317,11 +318,11 @@
         height: 280px;
         padding: 1rem;
     }
-    
+
     .mesa-card .icon span {
         font-size: 40px;
     }
-    
+
     .mesa-card h3 {
         font-size: 1rem;
     }

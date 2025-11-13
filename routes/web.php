@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ItemsMenuController;
 use App\Http\Controllers\MesasController;
 
 Route::get('/', function () {
@@ -37,3 +38,7 @@ Route::get('/mesas', [MesasController::class, 'index'])->name('mesas.index');
 Route::post('/mesas', [MesasController::class, 'store'])->name('mesas.store');
 Route::patch('/mesas/{id}', [MesasController::class, 'update'])->name('mesas.update');
 Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas.destroy');
+
+// Rutas para items menú
+Route::get('/items_menus', [ItemsMenuController::class, 'index'])->name('items_Menu.index');
+Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_menus.store');
