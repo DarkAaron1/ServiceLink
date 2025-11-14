@@ -5,19 +5,20 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemsMenuController;
 use App\Http\Controllers\MesasController;
+use App\Http\Controllers\UsuarioController;
 
 Route::get('/', function () {
     return view('Demo.index');
 });
 
-
-Route::get('/login',function(){
+Route::get('/login', function () {
     return view('Demo.login');
-});
+})->name('login');
 
-Route::get('/register',function(){
-    return view('Demo.register');
-});
+// Formulario de registro público
+Route::get('/register', [UsuarioController::class, 'create'])->name('register');
+// Cambiado el nombre de la ruta POST para evitar conflicto con 'usuarios.store'
+Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
 
 // ruta de bienvenida (a donde redirige el login)
 Route::get('/welcome', function () {
