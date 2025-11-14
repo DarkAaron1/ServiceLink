@@ -116,10 +116,14 @@
 			</div>
 
 			<div class="login-right">
-				<form class="login-form" method="POST" action="">
+				<form class="login-form" method="POST" action="{{ route('login.perform') }}">
 					@csrf
 					<h1>Iniciar Sesión</h1>
 					<p class="small">Introduce tus credenciales para continuar</p>
+
+					@if($errors->has('auth'))
+						<div style="color:#b00020;margin-top:.6rem;">{{ $errors->first('auth') }}</div>
+					@endif
 
 					<label class="field" for="email" style="margin-top:1rem;">
 						<span class="material-icons-sharp">mail_outline</span>
@@ -168,7 +172,7 @@
 
 					<div style="margin-top:1rem;display:flex;justify-content:center;gap:.5rem;align-items:center;">
 						<span class="small">¿No tienes cuenta?</span>
-						<a href="" class="link-muted" style="font-weight:600;">Regístrate</a>
+						<a href="{{ route('register') }}" class="link-muted" style="font-weight:600;">Regístrate</a>
 					</div>
 
 					<!-- Enlace rápido para volver al Dashboard si es necesario -->

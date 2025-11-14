@@ -6,14 +6,17 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemsMenuController;
 use App\Http\Controllers\MesasController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\LoginController; // agregado
+use App\Http\Controllers\DashboardController; // agregado
 
-Route::get('/', function () {
-    return view('Demo.index');
-});
+Route::get('/index', [DashboardController::class, 'index'])->name('index');
 
-Route::get('/login', function () {
-    return view('Demo.login');
-})->name('login');
+// Reemplazado: mostrar login mediante controlador
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+// Procesar login
+Route::post('/login', [LoginController::class, 'authenticate'])->name('login.perform');
+// Logout (GET para compatibilidad con enlaces simples en UI)
+Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Formulario de registro público
 Route::get('/register', [UsuarioController::class, 'create'])->name('register');

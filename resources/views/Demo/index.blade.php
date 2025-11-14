@@ -218,8 +218,8 @@
 
                 <div class="profile">
                         <div class="info">
-                            <p>Bienvenido, <b>Usuario</b></p>
-                            <small class="text-muted">Admin</small>
+                            <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
+                            <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
                         </div>
                         <!--div class="profile-photo">
                             <img src="{{ asset('favicon.ico') }}">
@@ -231,9 +231,9 @@
 
             <div class="user-profile">
                 <div class="logo">
-                    <img src="images/logo.png">
-                    <h2>ServiceLink</h2>
-                    <p>Dueño de Restaurante</p>
+                    <img src="{{  asset('favicon.ico') }}">
+                    <h2>{{ $usuario->nombre ?? 'Usuario' }}</h2>
+                    <p>{{ $rolName?? 'Rol' }}</p>
                 </div>
             </div>
 
