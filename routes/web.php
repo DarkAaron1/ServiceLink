@@ -51,6 +51,8 @@ Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_
 // Rutas para colaboradores (empleados)
 Route::get('/colaboradores', [EmpleadoController::class, 'index'])->name('empleados.index');
 Route::post('/colaboradores', [EmpleadoController::class, 'store'])->name('empleados.store');
+Route::put('/colaboradores/{rut}', [EmpleadoController::class, 'update'])->name('empleados.update');
+Route::delete('/colaboradores/{rut}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
 
 // Rutas para crear y almacenar un restaurante
 Route::get('restaurante/create', [RestauranteController::class, 'create'])->name('restaurante.create');

@@ -161,4 +161,54 @@ class EmpleadoController extends Controller
         // Retornar solo los números sin el dígito verificador
         return $partes[0];
     }
+    //función que permite la actualización de datos del empleado
+    public function update(Request $request, $rut)
+    {
+        // Normalizar RUT: remover puntos y convertir a formato estándar
+        $rutNormalizado = $this->normalizarRUT($rut);
+
+        $data = $request->validate([
+            'nombre' => ['required','string','max:100'],
+            'apellido' => ['required','string','max:100'],
+            'fecha_nacimiento' => ['required','date'],
+            'fono' => ['required','numeric'],
+            'email' => ['required','email','max:255','unique:empleados,email,'.$rutNormalizado.',rut'],
+            'cargo' => ['required','string','exists:roles,nombre'],
+            'estado' => ['sometimes','in:activo,inactivo'],
+        ]);
+
+        try {
+            DB::table('empleados')
+                ->where('rut', $rutNormalizado)
+                ->update([
+                    'nombre' => $data['nombre'],
+                    'apellido' => $data['apellido'],
+                    'fecha_nacimiento' => $data['fecha_nacimiento'],
+                    'fono' => $data['fono'],
+                    'email' => $data['email'],
+                    'cargo' => $data['cargo'],
+                    'estado' => $data['estado'] ?? 'inactivo',
+                    'updated_at' => now(),
+                ]);
+        } catch (Exception $e) {
+            return back()->withInput()->withErrors(['db' => 'Error al actualizar empleado: '.$e->getMessage()]);
+        }
+
+        return redirect()->route('empleados.index')->with('success','Empleado actualizado correctamente.');
+    }
+
+    //función que permite eliminar un empleado
+    public function destroy($rut)
+    {
+        // Normalizar RUT: remover puntos y convertir a formato estándar
+        $rutNormalizado = $this->normalizarRUT($rut);
+
+        try {
+            DB::table('empleados')->where('rut', $rutNormalizado)->delete();
+        } catch (Exception $e) {
+            return back()->withErrors(['db' => 'Error al eliminar empleado: '.$e->getMessage()]);
+        }
+
+        return redirect()->route('empleados.index')->with('success','Empleado eliminado correctamente.');
+    }
 }

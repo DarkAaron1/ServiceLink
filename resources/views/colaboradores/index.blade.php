@@ -403,29 +403,29 @@
 
         document.querySelectorAll('.edit').forEach(btn => {
             btn.addEventListener('click', () => {
-                const emp = JSON.parse(btn.getAttribute('data-employee'));
+                const employee = JSON.parse(btn.getAttribute('data-employee'));
                 modalTitle.textContent = 'Editar Colaborador';
+                form.action = '/colaboradores/' + encodeURIComponent(employee.rut);
                 
-                form.querySelector('#rut').value = emp.rut ?? '';
-                form.querySelector('#nombre').value = emp.nombre ?? '';
-                form.querySelector('#apellido').value = emp.apellido ?? '';
-                form.querySelector('#email').value = emp.email ?? '';
-                form.querySelector('#fono').value = emp.fono ?? '';
-                form.querySelector('#fecha_nacimiento').value = emp.fecha_nacimiento ?? '';
-                form.querySelector('#cargo').value = emp.cargo ?? '';
-                form.querySelector('#estado').value = emp.estado ?? 'activo';
-    
-                form.action = '/colaboradores/' + encodeURIComponent(emp.rut);
-    
-                if (!form.querySelector('input[name="_method"]')) {
-                    const methodInput = document.createElement('input');
+                let methodInput = form.querySelector('input[name="_method"]');
+                if (!methodInput) {
+                    methodInput = document.createElement('input');
                     methodInput.type = 'hidden';
                     methodInput.name = '_method';
-                    methodInput.value = 'PATCH';
                     form.appendChild(methodInput);
                 }
-    
+                methodInput.value = 'PUT';
+
+                form.querySelector('[name="rut"]').value = employee.rut;
                 form.querySelector('[name="rut"]').setAttribute('readonly', 'readonly');
+                form.querySelector('[name="nombre"]').value = employee.nombre;
+                form.querySelector('[name="apellido"]').value = employee.apellido;
+                form.querySelector('[name="email"]').value = employee.email;
+                form.querySelector('[name="fono"]').value = employee.fono;
+                form.querySelector('[name="fecha_nacimiento"]').value = employee.fecha_nacimiento;
+                form.querySelector('[name="cargo"]').value = employee.cargo;
+                form.querySelector('[name="estado"]').value = employee.estado;
+
                 openModal();
             });
         });
