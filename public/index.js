@@ -44,10 +44,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const isDarkMode = loadDarkModeState();
     applyDarkMode(isDarkMode);
 
+    // Nueva función: marca el enlace del sidebar como 'active' según la ruta actual
+        function setActiveSidebar() {
+        try {
+            const anchors = document.querySelectorAll('aside .sidebar a');
+            const currentPath = window.location.pathname.replace(/\/+$/, ''); // sin slash final
+            anchors.forEach(a => {
+                a.classList.remove('active');
+                const href = a.getAttribute('href');
+                if (!href || href === '#' || href.startsWith('javascript:')) return;
+                let anchorPath;
+                try {
+                    // Normaliza rutas absolutas y relativas
+                    anchorPath = new URL(href, window.location.origin).pathname.replace(/\/+$/, '');
+                } catch (e) {
+                    // fallback si URL falla
+                    anchorPath = href.replace(/\/+$/, '');
+                }
+                if (anchorPath === currentPath) {
+                    a.classList.add('active');
+                }
+            });
+        } catch (e) {
+            // silencioso en caso de error
+            console.error('setActiveSidebar error', e);
+        }
+    }
+
+    // llamar al cargar
+    setActiveSidebar();
+
     // Event listeners
     if (menuBtn) {
         menuBtn.addEventListener('click', () => {
             if (sideMenu) sideMenu.style.display = 'block';
+            // recalcular activo si la estructura del sidebar se renderiza dinámicamente
+            setActiveSidebar();
         });
     }
 
