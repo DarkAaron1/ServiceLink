@@ -10,7 +10,7 @@
 </head>
 
 <body>
-
+<script src="{{ asset('index.js') }}"></script>
     <div class="container">
         <!-- Sidebar Section -->
         <aside>
@@ -27,13 +27,13 @@
             </div>
 
             <div class="sidebar">
-                <a href="#" class="active">
+                <a href="{{ route('index') }}" class="active">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="#">
+                <a href="{{ route('empleados.index') }}">
                     <span class="material-icons-sharp">
                         person_outline
                     </span>
@@ -300,7 +300,7 @@
     </div>
 
     <!-- <script src="orders.js"></script> -->
-    <script src="{{ asset('index.js') }}"></script>
+    
 </body>
 
 </html>

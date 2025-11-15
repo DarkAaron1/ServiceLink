@@ -15,6 +15,7 @@
 </head>
 
 <body>
+    <script src="{{ asset('index.js') }}"></script>
 
     <div class="container">
         <!-- Sidebar Section -->
@@ -32,7 +33,7 @@
             </div>
 
             <div class="sidebar">
-                <a href="{{ url('/newhome') }}">
+                <a href="{{ url('/index') }}">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
@@ -331,7 +332,6 @@
     </div>
 
     <!-- <script src="orders.js"></script> -->
-    <script src="{{ asset('index.js') }}"></script>
     <script>
         // JS para modal y selección de mesas
         (function() {
