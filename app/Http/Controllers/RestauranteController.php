@@ -2,64 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Restaurante;
 use Illuminate\Http\Request;
+use App\Models\Restaurante;
+use App\Models\Usuario;
 
 class RestauranteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
-        //
+        // Opcional: obtener lista de administradores (usuarios)
+        $admins = Usuario::all(['rut', 'nombre', 'apellido', 'email']);
+        return view('Demo.restaurante_create', compact('admins'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar restaurante
     public function store(Request $request)
     {
-        //
-    }
+        $data = $request->validate([
+            'nombre' => ['required', 'string', 'max:255', 'unique:restaurantes,nombre'],
+            'direccion' => ['required', 'string', 'max:255'],
+            'telefono' => ['required', 'string', 'max:50', 'unique:restaurantes,telefono'],
+            'email' => ['required', 'email', 'max:255', 'unique:restaurantes,email'],
+            'fecha_creacion' => ['nullable', 'date'],
+            'rut_admin' => ['required', 'string', 'exists:usuarios,rut'],
+        ], [
+            'rut_admin.exists' => 'El administrador con RUT ingresado no existe en el sistema.',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Restaurante $restaurante)
-    {
-        //
-    }
+        Restaurante::create($data);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Restaurante $restaurante)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Restaurante $restaurante)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Restaurante $restaurante)
-    {
-        //
+        return redirect()->route('restaurante.create')->with('success', 'Restaurante creado correctamente.');
     }
 }

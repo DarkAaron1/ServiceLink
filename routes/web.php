@@ -8,6 +8,8 @@ use App\Http\Controllers\MesasController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\LoginController; // agregado
 use App\Http\Controllers\DashboardController; // agregado
+use App\Http\Controllers\EmpleadoController; // <-- agregado
+use App\Http\Controllers\RestauranteController; // <-- agregado
 
 Route::get('/index', [DashboardController::class, 'index'])->name('index');
 
@@ -45,3 +47,11 @@ Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas
 // Rutas para items menú
 Route::get('/items_menus', [ItemsMenuController::class, 'index'])->name('items_Menu.index');
 Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_menus.store');
+
+// Rutas para colaboradores (empleados)
+Route::get('/colaboradores', [EmpleadoController::class, 'index'])->name('empleados.index');
+Route::post('/colaboradores', [EmpleadoController::class, 'store'])->name('empleados.store');
+
+// Rutas para crear y almacenar un restaurante
+Route::get('restaurante/create', [RestauranteController::class, 'create'])->name('restaurante.create');
+Route::post('restaurante/store', [RestauranteController::class, 'store'])->name('restaurante.store');

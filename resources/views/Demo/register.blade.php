@@ -210,7 +210,29 @@
  	</div>
 
  	<script src="{{ asset('index.js') }}"></script>
- 	<script>
+	<script>
+		// Autoformato para RUT
+		(function(){
+			const rutInput = document.getElementById('rut');
+			if(!rutInput) return;
+
+			rutInput.addEventListener('blur', function(e){
+				let value = e.target.value.replace(/[^\dkK]/g, '').toUpperCase();
+				
+				if(value.length > 8) {
+					value = value.slice(0, 8) + '-' + value.slice(8, 9);
+				}
+				if(value.length > 5) {
+					value = value.slice(0, 5) + '.' + value.slice(5);
+				}
+				if(value.length > 2) {
+					value = value.slice(0, 2) + '.' + value.slice(2);
+				}
+				
+				e.target.value = value;
+			});
+		})();
+
 		// Toggle ver/ocultar contraseña
 		document.querySelectorAll('.toggle-password').forEach(function(btn){
 			btn.addEventListener('click', function(){
