@@ -1,4 +1,3 @@
-/* Modal fondo */
 .mesa-modal {
     display: none;
     position: fixed;
@@ -9,7 +8,6 @@
     z-index: 1000;
 }
 
-/* Contenido del modal */
 .modal-content {
     background: #fff;
     padding: 2rem 2.5rem;
@@ -20,7 +18,6 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
     animation: modalFadeIn 0.3s;
 }
-
 /* Botón cerrar */
 #close-modal {
     position: absolute;
@@ -38,7 +35,6 @@
     color: #1976d2;
 }
 
-/* Encabezado del modal */
 .modal-header {
     display: flex;
     align-items: center;
@@ -61,7 +57,21 @@
     padding: 0.4rem;
 }
 
-/* Formularios */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 
+   FORMULARIOS 
+ */
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -94,7 +104,14 @@
     border-color: #1976d2;
 }
 
-/* Botones de acción */
+.estado {
+    cursor: pointer;
+}
+
+/* 
+   BOTONES DE ACCIÓN - Formularios
+*/
+
 .form-actions {
     display: flex;
     gap: 0.7rem;
@@ -110,15 +127,15 @@
     transition: background 0.2s, color 0.2s;
 }
 
-#cancel-mesa,
-#cancel-edit-mesa {
+#cancel-modal,
+#cancel-edit-modal {
     border: 1.5px solid #bdbdbd;
     background: #fff;
     color: #555;
 }
 
-#cancel-mesa:hover,
-#cancel-edit-mesa {
+#cancel-modal:hover,
+#cancel-edit-mesa:hover {
     background: #f5f5f5;
 }
 
@@ -152,23 +169,6 @@
     font-size: 1.2rem;
 }
 
-/* Animación del modal */
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.estado {
-    cursor: pointer;
-}
-
 .button-Add {
     display: flex;
     align-items: center;
@@ -183,7 +183,7 @@
     box-shadow: none;
     cursor: pointer;
     transition: all 0.4s ease;
-    position: relative; /* necesario para el efecto circular */
+    position: relative;
     overflow: hidden;
 }
 
@@ -191,139 +191,539 @@
     box-shadow: 0 6px 18px rgba(11, 116, 222, 0.14);
 }
 
-/* Estilos para las mesas */
+/* 
+TARJETAS DE MESAS 
+*/
+
 .mesas-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(4, 150px);
+    gap: 0.8rem;
+    margin-top: 2rem;
+    padding: 0;
     justify-content: center;
 }
 
 .mesa-card {
-    width: 150px;
-    height: 300px;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--color-white);
+    border-radius: var(--border-radius-2);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-width: 0;
+    overflow: hidden;
+    width: 150px;
+    height: 260px;
 }
 
 .mesa-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--box-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.12));
 }
 
-.mesa-card.estado-disponible {
-    background: #e8f5e9;
-}
-
-.mesa-card.estado-ocupada {
-    background: #ffebee;
-}
-
-.mesa-card.estado-reservada {
-    background: #fff8e1;
-}
-
+/* Icono de la mesa */
 .mesa-card .icon {
-    margin-bottom: 1rem;
+    width: 45px;
+    height: 45px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.7rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .mesa-card .icon span {
-    font-size: 48px;
-    color: #424242;
+    font-size: 24px;
+    color: #9ca3af;
 }
 
+.mesa-card:hover .icon {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+/* Colores del icono según estado de la mesa */
+.mesa-card.estado-disponible .icon {
+    background: #d1fae5;
+}
+
+.mesa-card.estado-disponible .icon span {
+    color: #065f46;
+}
+
+.mesa-card.estado-disponible:hover .icon {
+    background: #a6f4c5;
+}
+
+.mesa-card.estado-ocupada .icon {
+    background: #fed7aa;
+}
+
+.mesa-card.estado-ocupada .icon span {
+    color: #92400e;
+}
+
+.mesa-card.estado-ocupada:hover .icon {
+    background: #fdcd86;
+}
+
+.mesa-card.estado-reservada .icon {
+    background: #dbeafe;
+}
+
+.mesa-card.estado-reservada .icon span {
+    color: #0c4a6e;
+}
+
+.mesa-card.estado-reservada:hover .icon {
+    background: #bfdbfe;
+}
+
+/* Nombre de la mesa */
 .mesa-card h3 {
-    margin: 0;
-    font-size: 1.2rem;
+    margin: 0 0 0.6rem 0;
+    font-size: 1.05rem;
+    font-weight: 600;
     text-align: center;
-    color: #333;
-    margin-bottom: 1rem;
+    color: #1f2937;
+    letter-spacing: -0.3px;
+    word-break: break-word;
 }
 
+/* Estado de la mesa */
 .estado-container {
     width: 100%;
-    margin-bottom: auto;
+    margin-bottom: 0.8rem;
 }
 
 .estado-indicador {
-    padding: 0.5rem;
-    border-radius: 8px;
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
     text-align: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: white;
+    font-weight: 700;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .estado-disponible .estado-indicador {
-    background: #4caf50;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .estado-ocupada .estado-indicador {
-    background: #f44336;
+    background: #fed7aa;
+    color: #92400e;
 }
 
 .estado-reservada .estado-indicador {
-    background: #ffc107;
+    background: #dbeafe;
+    color: #0c4a6e;
 }
 
+/* Botones de acción (Editar/Eliminar) */
 .mesa-actions {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
     margin-top: auto;
-    padding-bottom: 10px;
+    width: 100%;
+    padding-top: 0.7rem;
+    border-top: 1px solid #f3f4f6;
 }
 
 .mesa-btn {
-    flex: none;
+    width: 36px;
+    height: 36px;
     padding: 0;
-    width: 38px;
-    height: 33px;
     border-radius: 6px;
-    border: none;
-    color: white;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #6b7280;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    min-height: 36px;
 }
 
 .mesa-btn:hover {
-    opacity: 0.9;
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #d1d5db;
 }
 
-.mesa-btn.edit {
-    background: #2196f3;
+.mesa-btn.edit:hover {
+    color: #0b74de;
 }
 
-.mesa-btn.delete {
-    background: #f44336;
+.mesa-btn.delete:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
 }
 
 .mesa-btn span {
     font-size: 16px;
 }
 
-/* Responsive adjustments */
+/* Responsive - Mesas */
+@media (max-width: 1024px) {
+    .mesas-grid {
+        grid-template-columns: repeat(3, 150px);
+        gap: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .mesas-grid {
+        grid-template-columns: repeat(2, 150px);
+        gap: 0.8rem;
+    }
+}
+
 @media (max-width: 480px) {
+    .mesas-grid {
+        grid-template-columns: repeat(1, 150px);
+        gap: 0.5rem;
+    }
+
     .mesa-card {
-        width: 130px;
-        height: 280px;
-        padding: 1rem;
+        padding: 1.2rem;
+    }
+
+    .mesa-card .icon {
+        width: 44px;
+        height: 44px;
     }
 
     .mesa-card .icon span {
-        font-size: 40px;
+        font-size: 24px;
     }
 
     .mesa-card h3 {
         font-size: 1rem;
     }
+}
+
+/* 
+   TARJETAS DE MENÚ 
+*/
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.menu-card {
+    background: var(--color-white);
+    border-radius: var(--border-radius-2);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.12));
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Encabezado con nombre y precio */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin: 0;
+}
+
+.price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.description {
+    color: var(--color-dark-variant);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Footer con categoría y disponibilidad */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.category,
+.status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-dark-variant);
+}
+
+.category .material-icons-sharp,
+.status .material-icons-sharp {
+    font-size: 1.1rem;
+}
+
+.status.available {
+    color: var(--color-success, #2ecc71);
+}
+
+.status.unavailable {
+    color: var(--color-danger, #e74c3c);
+}
+
+/* Botones de acción (Editar/Eliminar) */
+.card-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--color-light);
+    padding-top: 1rem;
+}
+
+.card-actions button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-1);
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.card-actions button:hover {
+    filter: brightness(0.95);
+}
+
+.edit-btn {
+    background: var(--color-info-light, #ecf0f1);
+    color: var(--color-dark);
+}
+
+.edit-btn:hover {
+    background: #ecf0f1;
+    color: #0b74de;
+    border-color: #0b74de;
+}
+
+.delete-btn {
+    background: var(--color-danger-light, #ffecec);
+    color: var(--color-danger, #e74c3c);
+}
+
+.delete-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+.card-actions button:hover {
+    filter: brightness(0.95);
+}
+.filtro_cat {
+    font-weight: 600;
+    color: #3a3838;
+}
+
+/* Modo oscuro */
+.dark-mode-variables .filtro_cat {
+    color: var(--color-primary);
+}
+
+.dark-mode-variables .menu-card {
+    border: 1px solid var(--color-dark-variant);
+}
+
+.dark-mode-variables .edit-btn {
+    background: rgba(108, 155, 207, 0.15);
+    color: #6c9bcf;
+    border: 1px solid rgba(108, 155, 207, 0.3);
+}
+
+.dark-mode-variables .edit-btn:hover {
+    background: rgba(108, 155, 207, 0.25);
+    color: #8ab0dd;
+    border-color: rgba(108, 155, 207, 0.5);
+}
+
+.dark-mode-variables .delete-btn {
+    background: rgba(255, 0, 96, 0.12);
+    color: #ff6b9d;
+    border: 1px solid rgba(255, 0, 96, 0.25);
+}
+
+.dark-mode-variables .delete-btn:hover {
+    background: rgba(255, 0, 96, 0.22);
+    color: #ff9fc7;
+    border-color: rgba(255, 0, 96, 0.4);
+}
+
+/*
+  MODO OSCURO - MESAS
+  */
+
+.dark-mode-variables .mesa-card {
+    background: #202528;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    color: #e6eef8;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.6);
+}
+
+.dark-mode-variables .mesa-card:hover {
+    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.72);
+    border-color: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+}
+
+.dark-mode-variables .mesa-card h3 {
+    color: #e6eef8;
+}
+
+.dark-mode-variables .mesa-card .icon {
+    background: #0f1724;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.7rem;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.dark-mode-variables .mesa-card .icon span {
+    font-size: 24px;
+    color: #9aa4b2;
+}
+
+.dark-mode-variables .mesa-card.estado-disponible .icon {
+    background: rgba(16, 185, 129, 0.12);
+}
+.dark-mode-variables .mesa-card.estado-disponible .icon span {
+    color: #34d399;
+}
+.dark-mode-variables .mesa-card.estado-disponible:hover .icon {
+    background: rgba(16, 185, 129, 0.18);
+}
+
+.dark-mode-variables .mesa-card.estado-ocupada .icon {
+    background: rgba(253, 186, 116, 0.09);
+}
+.dark-mode-variables .mesa-card.estado-ocupada .icon span {
+    color: #f59e0b;
+}
+.dark-mode-variables .mesa-card.estado-ocupada:hover .icon {
+    background: rgba(253, 186, 116, 0.14);
+}
+
+.dark-mode-variables .mesa-card.estado-reservada .icon {
+    background: rgba(59, 130, 246, 0.08);
+}
+.dark-mode-variables .mesa-card.estado-reservada .icon span {
+    color: #60a5fa;
+}
+.dark-mode-variables .mesa-card.estado-reservada:hover .icon {
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.dark-mode-variables .estado-indicador {
+    background: rgba(255, 255, 255, 0.02);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.dark-mode-variables .estado-disponible .estado-indicador {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.06);
+}
+
+.dark-mode-variables .estado-ocupada .estado-indicador {
+    background: rgba(253, 186, 116, 0.09);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.06);
+}
+
+.dark-mode-variables .estado-reservada .estado-indicador {
+    background: rgba(59, 130, 246, 0.08);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.06);
+}
+
+.dark-mode-variables .mesa-actions {
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.dark-mode-variables .mesa-btn {
+    background: rgba(255, 255, 255, 0.02);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dark-mode-variables .mesa-btn:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: #e6eef8;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark-mode-variables .mesa-btn.edit:hover {
+    color: #8ab0dd;
+}
+
+.dark-mode-variables .mesa-btn.delete:hover {
+    color: #ff9fc7;
+}
+
+.dark-mode-variables .modal-content {
+    background: #202528;
+    color: #e6eef8;
+}
+.dark-mode-variables .label-dark {
+    color: #e6eef8c9;
+}
+.dark-mode-variables .input-group input,
+.dark-mode-variables .input-group select {
+    background: #202528;
+    color: #e6eef8;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.dark-mode-variables .filtro_reserva {
+    color: var(--color-primary);
 }

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('style-tables.css') }}">
@@ -59,7 +60,7 @@
                     <h3>Comandas</h3>
                     <span class="message-count">27</span>
                 </a>
-                <a href="#">
+                <a href="{{ route('items_menu.index') }} " class="active">
                     <span class="material-icons-sharp">
                         inventory
                     </span>
@@ -96,7 +97,7 @@
 
         <!-- Main Content -->
         <main>
-            <h1>Gestión de Menú</h1>
+            <h1>Gestión Menú</h1>
             <!-- Gestión de Items del Menú -->
             @if (session('success'))
                 <div class="alert alert-success"
@@ -105,12 +106,35 @@
                 </div>
             @endif
 
-            <div style="margin-bottom:2rem;" class="management-tables">
-                <div class="header" style="display:flex; align-items:center; justify-content:flex-end; gap:1rem;">
-                    <button id="new-item-btn" class="btn-primary button-Add">
-                        <span class="material-icons-sharp" style="font-size:1.3rem;">add</span>
-                        Nuevo Item
-                    </button>
+            <div style="margin-bottom:2rem;" class="management-tables ">
+                <div class="header" style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <label for="filter_categoria" class="filtro_cat">Filtrar por categoría:</label>
+                        <select id="filter_categoria"
+                            style="padding:0.5rem; border-radius:8px; border:1px solid #e2e8f0; background:#fff;">
+                            <option value="all">Todas</option>
+                            @if (isset($categorias) && $categorias->count())
+                                @foreach ($categorias as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-end;">
+                        {{-- Botón para crear nuevas categorias --}}
+                        <button type="button" id="new-category-btn" class="btn-primary button-Add"
+                            style="display:inline-flex; align-items:center; gap:0.5rem;">
+                            <span class="material-icons-sharp" style="font-size:1.1rem;">add</span>
+                            Crear Categoría
+                        </button>
+
+                        {{-- Botón para crear nuevos items --}}
+                        <button id="new-item-btn" class="btn-primary button-Add"
+                            style="display:inline-flex; align-items:center; gap:0.5rem;">
+                            <span class="material-icons-sharp" style="font-size:1.1rem;">add</span>
+                            Nuevo Item
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Lista del menú -->
@@ -120,27 +144,30 @@
                             <div class="card-content">
                                 <div class="card-header">
                                     <h3>{{ $item->nombre }}</h3>
-                                    <span class="price">S/. {{ number_format($item->precio, 1) }}</span>
+                                    <span class="price"> $ {{ number_format($item->precio, 1) }}</span>
                                 </div>
                                 <p class="description">{{ $item->descripcion }}</p>
                                 <div class="card-footer">
                                     <span class="category">
                                         <span class="material-icons-sharp">restaurant_menu</span>
-                                       {{ $item->items_categoria->nombre ?? 'Sin categoría' }}
+                                        {{ $item->categoria ? $item->categoria->nombre : 'Sin categoría' }}
                                     </span>
-                                    <span class="status {{ $item->disponible ? 'available' : 'unavailable' }}">
+                                    <span
+                                        class="status {{ $item->estado === 'disponible' ? 'available' : 'unavailable' }}">
                                         <span class="material-icons-sharp">
-                                            {{ $item->disponible ? 'check_circle' : 'cancel' }}
+                                            {{ $item->estado === 'disponible' ? 'check_circle' : 'cancel' }}
                                         </span>
-                                        {{ $item->disponible ? 'Disponible' : 'No disponible' }}
+                                        {{ $item->estado === 'disponible' ? 'Disponible' : 'No disponible' }}
                                     </span>
+
                                 </div>
                                 <div class="card-actions">
                                     <button class="edit-btn" onclick="editItem({{ $item->id }})">
                                         <span class="material-icons-sharp">edit</span>
                                         Editar
                                     </button>
-                                    <button class="delete-btn" onclick="deleteItem({{ $item->id }})">
+                                    <button class="delete-btn"
+                                        onclick="deleteItem({{ $item->id }}, '{{ addslashes($item->nombre) }}')">
                                         <span class="material-icons-sharp">delete</span>
                                         Eliminar
                                     </button>
@@ -165,7 +192,7 @@
                         </button>
                     </div>
 
-                    <form id="itemForm" method="POST" novalidate
+                    <form id="itemForm" method="POST" novalidate action="{{ route('items_menus.store') }}"
                         style="display:flex; flex-direction:column; gap:1.2rem;">
                         @csrf
                         <input type="hidden" name="_method" value="POST" id="method">
@@ -205,27 +232,54 @@
                                 <select id="categoria_id" name="categoria_id" required
                                     style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem; background-color:#fff;">
                                     <option value="" disabled selected>Seleccione una categoría</option>
+                                    @if (isset($categorias) && $categorias->count())
+                                        @foreach ($categorias as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
 
                             <div class="form-group" style="display:flex; flex-direction:column; gap:0.5rem;">
-                                <label for="disponible"
+                                <label for="estado"
                                     style="font-size:0.9rem; font-weight:500; color:#334155;">Disponibilidad</label>
-                                <select id="disponible" name="disponible" aria-label="Disponibilidad"
+                                <select id="estado" name="estado" aria-label="Disponibilidad"
                                     style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem; background-color:#fff;">
-                                    <option value="1" selected>Disponible</option>
-                                    <option value="0">No disponible</option>
+                                    <option value="disponible" selected>Disponible</option>
+                                    <option value="no_disponible">No disponible</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="button" id="cancel-mesa">Cancelar</button>
+                            <button type="button" id="cancel-modal">Cancelar</button>
                             <button type="submit">Crear Item Menú</button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <!-- Modal de confirmación de eliminación de item -->
+            <div id="delete-item-modal" class="mesa-modal" style="display:none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
+                        <h2 style="margin:0;">Confirmar eliminación</h2>
+                    </div>
+                    <div style="padding:0.5rem 0 1rem 0;">
+                        <p id="delete-item-message">¿Desea eliminar este item?</p>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
+                        <button type="button" id="delete-item-cancel" class="button-Add edit-btn"
+                            style="background:#e2e8f0; color:#374151; border:none; padding:0.6rem 1rem; border-radius:6px;">Cancelar</button>
+                        <button type="button" id="delete-item-confirm" class="button-Add delete-btn"
+                            style="background:#e53935; color:#fff; border:none; padding:0.6rem 1rem; border-radius:6px;">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+
+
+
 
         </main>
         <!-- End of Main Content -->
@@ -336,6 +390,8 @@
         const newItemBtn = document.getElementById('new-item-btn');
         const closeModal = document.getElementById('close-modal');
         const itemForm = document.getElementById('itemForm');
+        const itemModalTitle = document.getElementById('itemModalTitle');
+        const submitBtn = itemForm.querySelector('button[type="submit"]');
 
         // Open modal on new item button click
         newItemBtn.addEventListener('click', function() {
@@ -343,12 +399,14 @@
             itemForm.reset();
             document.getElementById('method').value = 'POST';
             itemForm.action = '{{ route('items_menus.store') }}';
-
+            itemModalTitle.textContent = 'Crear Item del Menú';
+            submitBtn.textContent = 'Crear Item Menú';
         });
 
         // Close modal functionality
         function hideModal() {
             modal.style.display = 'none';
+            itemForm.reset();
         }
 
         if (closeModal) {
@@ -361,297 +419,220 @@
         });
 
         // Cancel button functionality
-        const cancelButton = document.getElementById('cancel-mesa');
+        const cancelButton = document.getElementById('cancel-modal');
         if (cancelButton) {
             cancelButton.addEventListener('click', hideModal);
         }
+
+        // Edit item function
+        function editItem(itemId) {
+            fetch(`/items_menus/${itemId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(item => {
+                    document.getElementById('nombre').value = item.nombre;
+                    document.getElementById('precio').value = item.precio;
+                    document.getElementById('descripcion').value = item.descripcion;
+                    document.getElementById('categoria_id').value = item.categoria_id;
+                    document.getElementById('estado').value = item.estado;
+
+                    itemModalTitle.textContent = 'Editar Item del Menú';
+                    submitBtn.textContent = 'Actualizar Item Menú';
+                    itemForm.action = `/items_menus/${itemId}`;
+                    document.getElementById('method').value = 'PATCH';
+
+                    modal.style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar el item');
+                });
+        }
+        // Delete item function (opens confirmation modal)
+        function deleteItem(itemId, itemName) {
+            const deleteModal = document.getElementById('delete-item-modal');
+            const deleteMessage = document.getElementById('delete-item-message');
+            const deleteConfirm = document.getElementById('delete-item-confirm');
+            const deleteCancel = document.getElementById('delete-item-cancel');
+
+            if (!deleteModal || !deleteConfirm || !deleteCancel || !deleteMessage) {
+                // Fallback to previous behaviour
+                if (!confirm('¿Está seguro de que desea eliminar este item?')) return;
+            }
+
+            deleteMessage.textContent = itemName ? `¿Desea eliminar el item "${itemName}"?` : '¿Desea eliminar este item?';
+            deleteModal.style.display = 'flex';
+
+            // Cancel handler
+            deleteCancel.onclick = function() {
+                deleteModal.style.display = 'none';
+            };
+
+            // Remove any previous handler and set new one
+            deleteConfirm.onclick = null;
+            deleteConfirm.onclick = function() {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+                fetch(`/items_menus/${itemId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(async response => {
+                        const contentType = response.headers.get('content-type') || '';
+                        let payload = null;
+                        if (contentType.includes('application/json')) {
+                            payload = await response.json().catch(() => null);
+                        } else {
+                            const text = await response.text().catch(() => null);
+                            try {
+                                payload = text ? JSON.parse(text) : null;
+                            } catch (e) {
+                                payload = null;
+                            }
+                        }
+
+                        if (response.ok) {
+                            // Treat OK as success
+                            deleteModal.style.display = 'none';
+                            location.reload();
+                        } else {
+                            const msg = (payload && payload.message) ? payload.message :
+                                'Error al eliminar el item';
+                            deleteModal.style.display = 'none';
+                            alert(msg);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        deleteModal.style.display = 'none';
+                        alert('Error al eliminar el item');
+                    });
+            };
+        }
+
+
+        // Form submission
+        itemForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const method = document.getElementById('method').value;
+
+            let fetchOptions = {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || document
+                        .querySelector('input[name="_token"]').value,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            };
+
+            if (method === 'POST') {
+                fetchOptions.method = 'POST';
+                fetchOptions.body = formData;
+            } else if (method === 'PATCH') {
+                fetchOptions.method = 'POST';
+                formData.append('_method', 'PATCH');
+                fetchOptions.body = formData;
+            }
+
+            fetch(this.action, fetchOptions)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error en la operación');
+                });
+        });
+
+        // Render items helper for AJAX filtering
+        function renderItems(items) {
+            const grid = document.querySelector('.menu-grid');
+            if (!grid) return;
+            if (!items || !items.length) {
+                grid.innerHTML = '<p>No hay items para esta categoría.</p>';
+                return;
+            }
+            grid.innerHTML = items.map(item => {
+                const categoriaNombre = item.categoria ? item.categoria.nombre : 'Sin categoría';
+                const estadoClass = item.estado === 'disponible' ? 'available' : 'unavailable';
+                const estadoIcon = item.estado === 'disponible' ? 'check_circle' : 'cancel';
+                const estadoText = item.estado === 'disponible' ? 'Disponible' : 'No disponible';
+                return `
+                <div class="menu-card">
+                    <div class="card-content">
+                        <div class="card-header">
+                            <h3>${item.nombre}</h3>
+                            <span class="price">$ ${Number(item.precio).toFixed(1)}</span>
+                        </div>
+                        <p class="description">${item.descripcion || ''}</p>
+                        <div class="card-footer">
+                            <span class="category">
+                                <span class="material-icons-sharp">restaurant_menu</span>
+                                ${categoriaNombre}
+                            </span>
+                            <span class="status ${estadoClass}">
+                                <span class="material-icons-sharp">${estadoIcon}</span>
+                                ${estadoText}
+                            </span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="edit-btn" onclick="editItem(${item.id})">
+                                <span class="material-icons-sharp">edit</span>Editar
+                            </button>
+                            <button class="delete-btn" onclick="deleteItem(${item.id}, '${String(item.nombre).replace(/'/g, "\\'")}')">
+                                <span class="material-icons-sharp">delete</span>Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Filter by category select
+        const filterSelect = document.getElementById('filter_categoria');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                const val = this.value;
+                const url = val === 'all' ? '/items_menus/categoria/all' : `/items_menus/categoria/${val}`;
+                fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        renderItems(data);
+                    })
+                    .catch(err => {
+                        console.error('Error al filtrar:', err);
+                        alert('Error al filtrar por categoría');
+                    });
+            });
+        }
+
+
+        // redireccionar a  category button
+        document.getElementById('new-category-btn').addEventListener('click', function() {
+            window.location.href = "{{ route('categorias.index') }}";
+        });
     </script>
 
-    <style>
-        /* Modal improvements: modern, clean, rounded */
-        #itemModal {
-            display: none;
-            /* Asegura que el modal esté oculto por defecto */
-        }
-
-        #itemModal .modal-content {
-            background-color: var(--color-white, #ffffff);
-            margin: 4% auto;
-            padding: 1.25rem;
-            border-radius: var(--border-radius-2, 12px);
-            width: 92%;
-            max-width: 640px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-            border: 1px solid rgba(0, 0, 0, 0.04);
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-        }
-
-        #itemModal .modal-header {
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        #itemModal h2 {
-            margin: 0;
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--color-dark, #222);
-            letter-spacing: -0.2px;
-        }
-
-        /* Form layout */
-        #itemModal form {
-            display: grid;
-            gap: 0.75rem;
-        }
-
-        /* Two-column grid for larger viewports */
-        @media (min-width: 560px) {
-            #itemModal .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0.75rem;
-            }
-
-            #itemModal .full-width {
-                grid-column: 1 / -1;
-            }
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
-
-        .form-group label {
-            font-size: 0.875rem;
-            color: var(--color-dark, #222);
-            font-weight: 500;
-        }
-
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group textarea,
-        .form-group select {
-            appearance: none;
-            -webkit-appearance: none;
-            padding: 0.6rem 0.75rem;
-            border-radius: var(--border-radius-1, 8px);
-            border: 1px solid var(--color-info-dark, #d1d7dd);
-            background: var(--color-white, #fff);
-            font-size: 0.95rem;
-            color: var(--color-dark, #222);
-            outline: none;
-            transition: box-shadow .12s ease, border-color .12s ease;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 84px;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: var(--color-primary, #1e90ff);
-            box-shadow: 0 4px 14px rgba(30, 144, 255, 0.08);
-        }
-
-        .field-note {
-            font-size: 0.78rem;
-            color: var(--color-muted, #6b7280);
-            margin-top: 0.25rem;
-        }
-
-        .modal-footer {
-            margin-top: 0.5rem;
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: var(--color-primary, #0b74de);
-            color: #fff;
-            padding: 0.6rem 1rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            box-shadow: 0 6px 18px rgba(11, 116, 222, 0.14);
-            transition: transform .06s ease, box-shadow .06s ease, opacity .12s;
-        }
-
-        .btn-primary:active {
-            transform: translateY(1px);
-        }
-
-        .btn-primary:disabled {
-            opacity: .6;
-            cursor: default;
-            box-shadow: none;
-        }
-
-        .btn-secondary {
-            background: var(--color-light, #f3f4f6);
-            color: var(--color-dark, #222);
-            padding: 0.55rem 0.9rem;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        /* Menu Grid Styles */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            padding: 1rem 0;
-        }
-
-        .menu-card {
-            background: var(--color-white);
-            border-radius: var(--border-radius-2);
-            padding: 1.5rem;
-            box-shadow: var(--box-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .menu-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--box-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.12));
-        }
-
-        .card-content {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .card-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--color-dark);
-            margin: 0;
-        }
-
-        .price {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--color-primary);
-        }
-
-        .description {
-            color: var(--color-dark-variant);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        .category,
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--color-dark-variant);
-        }
-
-        .category .material-icons-sharp,
-        .status .material-icons-sharp {
-            font-size: 1.1rem;
-        }
-
-        .status.available {
-            color: var(--color-success, #2ecc71);
-        }
-
-        .status.unavailable {
-            color: var(--color-danger, #e74c3c);
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-            border-top: 1px solid var(--color-light);
-            padding-top: 1rem;
-        }
-
-        .card-actions button {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius-1);
-            border: none;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .edit-btn {
-            background: var(--color-info-light, #ecf0f1);
-            color: var(--color-dark);
-        }
-
-        .delete-btn {
-            background: var(--color-danger-light, #ffecec);
-            color: var(--color-danger, #e74c3c);
-        }
-
-        .card-actions button:hover {
-            filter: brightness(0.95);
-        }
-
-        /* Dark mode adjustments */
-        .dark-mode-variables .menu-card {
-            background: var(--color-dark);
-            border: 1px solid var(--color-dark-variant);
-        }
-
-        .dark-mode-variables .card-header h3,
-        .dark-mode-variables .description {
-            color: var(--color-white);
-        }
-
-        .dark-mode-variables .category,
-        .dark-mode-variables .status {
-            color: var(--color-info-light);
-        }
-
-        .dark-mode-variables .card-actions {
-            border-top-color: var(--color-dark-variant);
-        }
-
-        .dark-mode-variables .edit-btn {
-            background: var(--color-dark-variant);
-            color: var(--color-white);
-        }
-
-        .dark-mode-variables .delete-btn {
-            background: var(--color-danger-dark, #700303);
-            color: var(--color-danger-light);
-        }
-    </style>
 </body>
 
 </html>
