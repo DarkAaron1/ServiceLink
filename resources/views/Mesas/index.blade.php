@@ -30,7 +30,7 @@
             </div>
 
             <div class="sidebar">
-                <a href="{{ url('/newhome') }}">
+                <a href="">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
@@ -117,10 +117,10 @@
                                 </div>
                                 <h3>{{ $mesa->nombre }}</h3>
                                 <div class="estado-container">
-                                    <div class="estado-indicador" >
+                                    <div class="estado-indicador">
                                         {{ $mesa->estado }}
                                     </div>
-                                </div>                          
+                                </div>
                                 @if (!empty($mesa->detalle_reserva) && $mesa->estado === 'Reservada')
                                     <p class="reservation-detail filtro_reserva"
                                         style="font-size:0.8rem;  margin-top:0.4rem;">Reserva:
@@ -132,13 +132,16 @@
                                         onclick="openEditModal({{ $mesa->id }}, '{{ addslashes($mesa->nombre) }}', '{{ $mesa->estado }}', '{{ addslashes($mesa->detalle_reserva ?? '') }}')">
                                         <span class="material-icons-sharp">edit</span>
                                     </button>
-                                        <form method="POST" action="{{ route('mesas.destroy', $mesa->id) }}" style="margin:0;" class="delete-mesa-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" data-id="{{ $mesa->id }}" data-name="{{ addslashes($mesa->nombre) }}" class="mesa-btn delete delete-mesa-btn">
-                                                <span class="material-icons-sharp">delete</span>
-                                            </button>
-                                        </form>
+                                    <form method="POST" action="{{ route('mesas.destroy', $mesa->id) }}"
+                                        style="margin:0;" class="delete-mesa-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" data-id="{{ $mesa->id }}"
+                                            data-name="{{ addslashes($mesa->nombre) }}"
+                                            class="mesa-btn delete delete-mesa-btn">
+                                            <span class="material-icons-sharp">delete</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         @endforeach
@@ -239,22 +242,24 @@
             </div>
             <!--Fin  Modal para crear mesa -->
 
-             <!-- Modal de confirmación de eliminación de mesa -->
-                <div id="delete-mesa-modal" class="mesa-modal" style="display:none;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
-                            <h2 style="margin:0;">Confirmar eliminación</h2>
-                        </div>
-                        <div style="padding:0.5rem 0 1rem 0;">
-                            <p id="delete-mesa-message">¿Desea eliminar esta mesa?</p>
-                        </div>
-                        <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
-                            <button type="button" id="delete-mesa-cancel" class="button-Add edit-btn" style="background:#e2e8f0; color:#374151; border:none; padding:0.6rem 1rem; border-radius:6px;">Cancelar</button>
-                            <button type="button" id="delete-mesa-confirm" class="button-Add delete-btn" style="background:#e53935; color:#fff; border:none; padding:0.6rem 1rem; border-radius:6px;">Eliminar</button>
-                        </div>
+            <!-- Modal de confirmación de eliminación de mesa -->
+            <div id="delete-mesa-modal" class="mesa-modal" style="display:none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
+                        <h2 style="margin:0;">Confirmar eliminación</h2>
+                    </div>
+                    <div style="padding:0.5rem 0 1rem 0;">
+                        <p id="delete-mesa-message">¿Desea eliminar esta mesa?</p>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
+                        <button type="button" id="delete-mesa-cancel" class="button-Add edit-btn"
+                            style="background:#e2e8f0; color:#374151; border:none; padding:0.6rem 1rem; border-radius:6px;">Cancelar</button>
+                        <button type="button" id="delete-mesa-confirm" class="button-Add delete-btn"
+                            style="background:#e53935; color:#fff; border:none; padding:0.6rem 1rem; border-radius:6px;">Eliminar</button>
                     </div>
                 </div>
+            </div>
 
 
         </main>
@@ -515,7 +520,9 @@
                     deleteMesaMessage.textContent = `¿Desea eliminar la mesa "${name}"?`;
                     deleteMesaModal.style.display = 'flex';
 
-                    deleteMesaCancel.onclick = function() { deleteMesaModal.style.display = 'none'; };
+                    deleteMesaCancel.onclick = function() {
+                        deleteMesaModal.style.display = 'none';
+                    };
 
                     deleteMesaConfirm.onclick = function() {
                         const token = document.querySelector('meta[name="csrf-token"]').content;
@@ -524,38 +531,48 @@
                         fd.append('_token', token);
 
                         fetch('/mesas/' + id, {
-                            method: 'POST',
-                            body: fd,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(async r => {
-                            const contentType = r.headers.get('content-type') || '';
-                            let payload = null;
-                            if (contentType.includes('application/json')) {
-                                payload = await r.json().catch(() => null);
-                            } else {
-                                const text = await r.text().catch(() => null);
-                                try { payload = text ? JSON.parse(text) : null; } catch(e) { payload = null; }
-                            }
-
-                            if (r.ok) {
-                                // Si el backend devuelve JSON con success=true
-                                if (payload && payload.success === true) {
-                                    location.reload();
-                                } else {
-                                    // Si no hay JSON, o no tiene formato esperado, tratar como éxito (porque la eliminación ya ocurrió)
-                                    location.reload();
+                                method: 'POST',
+                                body: fd,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
                                 }
-                            } else {
-                                const msg = (payload && payload.message) ? payload.message : 'Error al eliminar la mesa';
-                                alert(msg);
-                            }
-                        })
-                        .catch(err => { console.error(err); alert('Error al eliminar la mesa'); })
-                        .finally(() => { deleteMesaModal.style.display = 'none'; });
+                            })
+                            .then(async r => {
+                                const contentType = r.headers.get('content-type') || '';
+                                let payload = null;
+                                if (contentType.includes('application/json')) {
+                                    payload = await r.json().catch(() => null);
+                                } else {
+                                    const text = await r.text().catch(() => null);
+                                    try {
+                                        payload = text ? JSON.parse(text) : null;
+                                    } catch (e) {
+                                        payload = null;
+                                    }
+                                }
+
+                                if (r.ok) {
+                                    // Si el backend devuelve JSON con success=true
+                                    if (payload && payload.success === true) {
+                                        location.reload();
+                                    } else {
+                                        // Si no hay JSON, o no tiene formato esperado, tratar como éxito (porque la eliminación ya ocurrió)
+                                        location.reload();
+                                    }
+                                } else {
+                                    const msg = (payload && payload.message) ? payload
+                                        .message : 'Error al eliminar la mesa';
+                                    alert(msg);
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                alert('Error al eliminar la mesa');
+                            })
+                            .finally(() => {
+                                deleteMesaModal.style.display = 'none';
+                            });
                     };
                 });
             });

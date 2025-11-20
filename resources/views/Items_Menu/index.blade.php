@@ -29,7 +29,7 @@
             </div>
 
             <div class="sidebar">
-                <a href="{{ url('/newhome') }}">
+                <a href="">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
