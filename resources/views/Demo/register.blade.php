@@ -91,6 +91,11 @@
 			.register-card { grid-template-columns: 1fr; }
 			.side-brand { padding: 2rem; text-align:center; }
 		}
+
+		/* Estilos para toggle y mensajes de contraseña */
+		.field .toggle-password { cursor: pointer; color: #6b7aa6; margin-left: .4rem; user-select:none; }
+		.small.match-ok { color: #2f8e44; }
+		.small.match-error { color: #d0464c; }
 	</style>
 </head>
 <body>
@@ -115,49 +120,159 @@
 			</div>
 
 			<div class="register-right">
-				<form method="POST" action="">
+				<form method="POST" action="{{ route('register.store') }}">
 					@csrf
 					<h1 class="form-title">Crear Cuenta</h1>
 					<p class="small">Rellena los datos para crear una nueva cuenta</p>
-
-					<label class="field" for="name" style="margin-top:1rem;">
-						<span class="material-icons-sharp">person</span>
-						<input id="name" type="text" name="name" placeholder="Nombre completo" value="" required autofocus>
+ 
+					<!-- RUT -->
+					<label class="field" for="rut" style="margin-top:1rem;">
+						<span class="material-icons-sharp">badge</span>
+						<input id="rut" type="text" name="rut" placeholder="RUT (ej: 12.345.678-9)" value="{{ old('rut') }}" required autofocus>
 					</label>
-					@error('name') <div class="error">{{ $message }}</div> @enderror
+					@error('rut') <div class="error">{{ $message }}</div> @enderror
 
+					<!-- Nombre -->
+					<label class="field" for="nombre" style="margin-top:.6rem;">
+						<span class="material-icons-sharp">person</span>
+						<input id="nombre" type="text" name="nombre" placeholder="Nombre" value="{{ old('nombre') }}" required>
+					</label>
+					@error('nombre') <div class="error">{{ $message }}</div> @enderror
+
+					<!-- Apellido -->
+					<label class="field" for="apellido" style="margin-top:.6rem;">
+						<span class="material-icons-sharp">badge</span>
+						<input id="apellido" type="text" name="apellido" placeholder="Apellido" value="{{ old('apellido') }}" required>
+					</label>
+					@error('apellido') <div class="error">{{ $message }}</div> @enderror
+ 
+					<!-- Email -->
 					<label class="field" for="email" style="margin-top:.6rem;">
 						<span class="material-icons-sharp">mail_outline</span>
-						<input id="email" type="email" name="email" placeholder="Correo electrónico" value="" required>
+						<input id="email" type="email" name="email" placeholder="Correo electrónico" value="{{ old('email') }}" required>
 					</label>
 					@error('email') <div class="error">{{ $message }}</div> @enderror
-
+ 
+					<!-- Contraseña -->
 					<label class="field" for="password" style="margin-top:.6rem;">
 						<span class="material-icons-sharp">lock</span>
 						<input id="password" type="password" name="password" placeholder="Contraseña" required autocomplete="new-password">
+						<!-- toggle password -->
+						<span class="material-icons-sharp toggle-password" data-target="password" title="Mostrar / ocultar contraseña">visibility</span>
 					</label>
 					@error('password') <div class="error">{{ $message }}</div> @enderror
 
+					<!-- Confirmación -->
 					<label class="field" for="password_confirmation" style="margin-top:.6rem;">
 						<span class="material-icons-sharp">lock_clock</span>
 						<input id="password_confirmation" type="password" name="password_confirmation" placeholder="Confirmar contraseña" required>
+						<!-- toggle password -->
+						<span class="material-icons-sharp toggle-password" data-target="password_confirmation" title="Mostrar / ocultar contraseña">visibility</span>
 					</label>
 
-					<button type="submit" class="btn-primary" style="margin-top:1rem;">Crear Cuenta</button>
+					<!-- Mensaje de coincidencia -->
+					<div id="password-match" class="small" style="margin-top:.4rem;"></div>
+ 
+					<!-- Fecha de nacimiento -->
+					<label class="field" for="fecha_nacimiento" style="margin-top:.6rem;">
+						<span class="material-icons-sharp">cake</span>
+						<input id="fecha_nacimiento" type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
+					</label>
+					@error('fecha_nacimiento') <div class="error">{{ $message }}</div> @enderror
 
+					<!-- Rol -->
+					<label class="field" for="rol_id" style="margin-top:.6rem;">
+						<span class="material-icons-sharp">groups</span>
+						<select id="rol_id" name="rol_id" style="border:none;background:transparent;width:100%;padding:.45rem 0;">
+							<option value="">Seleccione un rol</option>
+							@isset($roles)
+								@foreach($roles as $rol)
+									<option value="{{ $rol->id }}" {{ old('rol_id') == $rol->id ? 'selected' : '' }}>{{ $rol->nombre ?? 'Rol '.$rol->id }}</option>
+								@endforeach
+							@endisset
+						</select>
+					</label>
+					@error('rol_id') <div class="error">{{ $message }}</div> @enderror
+ 
+					<button type="submit" class="btn-primary" style="margin-top:1rem;">Crear Cuenta</button>
+ 
 					<div style="margin-top:1rem;display:flex;justify-content:center;gap:.5rem;align-items:center;">
 						<span class="small">¿Ya tienes cuenta?</span>
-						<a href="" class="link-muted" style="font-weight:600;">Inicia sesión</a>
+						<a href="login" class="link-muted" style="font-weight:600;">Inicia sesión</a>
 					</div>
-
+ 
 					<div style="margin-top:1.2rem;text-align:center;">
-						<a href="" class="small link-muted">Volver al inicio</a>
+						<a href="login" class="small link-muted">Volver al inicio</a>
 					</div>
 				</form>
-			</div>
-		</div>
-	</div>
+ 			</div>
+ 		</div>
+ 	</div>
 
-	<script src="{{ asset('index.js') }}"></script>
-</body>
-</html>
+ 	<script src="{{ asset('index.js') }}"></script>
+	<script>
+		// Autoformato para RUT
+		(function(){
+			const rutInput = document.getElementById('rut');
+			if(!rutInput) return;
+
+			rutInput.addEventListener('blur', function(e){
+				let value = e.target.value.replace(/[^\dkK]/g, '').toUpperCase();
+				
+				if(value.length > 8) {
+					value = value.slice(0, 8) + '-' + value.slice(8, 9);
+				}
+				if(value.length > 5) {
+					value = value.slice(0, 5) + '.' + value.slice(5);
+				}
+				if(value.length > 2) {
+					value = value.slice(0, 2) + '.' + value.slice(2);
+				}
+				
+				e.target.value = value;
+			});
+		})();
+
+		// Toggle ver/ocultar contraseña
+		document.querySelectorAll('.toggle-password').forEach(function(btn){
+			btn.addEventListener('click', function(){
+				var target = document.getElementById(this.dataset.target);
+				if (!target) return;
+				if (target.type === 'password') {
+					target.type = 'text';
+					this.textContent = 'visibility_off';
+				} else {
+					target.type = 'password';
+					this.textContent = 'visibility';
+				}
+			});
+		});
+
+		// Comprobación en tiempo real si las contraseñas coinciden
+		(function(){
+			var pwd = document.getElementById('password');
+			var pwdc = document.getElementById('password_confirmation');
+			var matchDiv = document.getElementById('password-match');
+			if (!pwd || !pwdc || !matchDiv) return;
+
+			function checkMatch(){
+				if (!pwd.value && !pwdc.value) {
+					matchDiv.textContent = '';
+					matchDiv.className = 'small';
+					return;
+				}
+				if (pwd.value === pwdc.value) {
+					matchDiv.textContent = 'Las contraseñas coinciden';
+					matchDiv.className = 'small match-ok';
+				} else {
+					matchDiv.textContent = 'Las contraseñas no coinciden';
+					matchDiv.className = 'small match-error';
+				}
+			}
+
+			pwd.addEventListener('input', checkMatch);
+			pwdc.addEventListener('input', checkMatch);
+		})();
+	</script>
+ </body>
+ </html>

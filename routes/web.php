@@ -6,19 +6,27 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemsCategoriaController;
 use App\Http\Controllers\ItemsMenuController;
 use App\Http\Controllers\MesasController;
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\LoginController; // agregado
+use App\Http\Controllers\DashboardController; // agregado
+use App\Http\Controllers\EmpleadoController; // <-- agregado
+use App\Http\Controllers\RestauranteController; // <-- agregado
+use App\Mail\MiPrimerEmail;
+use Illuminate\Support\Facades\Mail;
 
-Route::get('/', function () {
-    return view('Demo.index');
-});
+Route::get('/index', [DashboardController::class, 'index'])->name('index');
 
+// Reemplazado: mostrar login mediante controlador
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+// Procesar login
+Route::post('/login', [LoginController::class, 'authenticate'])->name('login.perform');
+// Logout (GET para compatibilidad con enlaces simples en UI)
+Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/login',function(){
-    return view('Demo.login');
-});
-
-Route::get('/register',function(){
-    return view('Demo.register');
-});
+// Formulario de registro público
+Route::get('/register', [UsuarioController::class, 'create'])->name('register');
+// Cambiado el nombre de la ruta POST para evitar conflicto con 'usuarios.store'
+Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
 
 // ruta de bienvenida (a donde redirige el login)
 Route::get('/welcome', function () {
@@ -53,3 +61,17 @@ Route::get('/categorias', [ItemsCategoriaController::class, 'index'])->name('cat
 Route::post('/items_categorias', [ItemsCategoriaController::class, 'store'])->name('items_categorias.store');
 Route::delete('/items_categorias/{items_Categoria}', [ItemsCategoriaController::class, 'destroy'])->name('items_categorias.destroy');
 Route::patch('/items_categorias/{items_Categoria}', [ItemsCategoriaController::class, 'update'])->name('items_categorias.update');
+
+// Rutas para colaboradores (empleados)
+Route::get('/colaboradores', [EmpleadoController::class, 'index'])->name('empleados.index');
+Route::post('/colaboradores', [EmpleadoController::class, 'store'])->name('empleados.store');
+Route::put('/colaboradores/{rut}', [EmpleadoController::class, 'update'])->name('empleados.update');
+Route::delete('/colaboradores/{rut}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
+
+// Rutas para crear y almacenar un restaurante
+Route::get('restaurante/create', [RestauranteController::class, 'create'])->name('restaurante.create');
+Route::post('restaurante/store', [RestauranteController::class, 'store'])->name('restaurante.store');
+
+//Ruta para contraseñas
+Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, 'reestablecerContrasena'])->name('empleados.reset_password');
+
