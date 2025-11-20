@@ -85,7 +85,7 @@
                     <h3>Comandas</h3>
                     <span class="message-count">27</span>
                 </a>
-                <a href="#">
+                <a href="{{ route('items_menu.index') }}">
                     <span class="material-icons-sharp">
                         inventory
                     </span>

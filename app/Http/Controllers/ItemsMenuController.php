@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Items_Menu;
 use Illuminate\Http\Request;
+use App\Models\Items_Categoria;
+
 
 class ItemsMenuController extends Controller
 {
@@ -13,8 +15,22 @@ class ItemsMenuController extends Controller
     public function index()
     {
         $itemsMenu = Items_Menu::with('categoria')->get();
-        $categorias = \App\Models\Items_Categoria::all();
-        return view('items_Menu.index', compact('itemsMenu', 'categorias'));
+        $categorias = Items_Categoria::all();
+        return view('Items_Menu.index', compact('itemsMenu', 'categorias'));
+    }
+
+    /**
+     * Return items by category (AJAX)
+     */
+    public function byCategoria($categoria)
+    {
+        if ($categoria === 'all') {
+            $items = Items_Menu::with('categoria')->get();
+        } else {
+            $items = Items_Menu::with('categoria')->where('categoria_id', $categoria)->get();
+        }
+
+        return response()->json($items);
     }
 
     /**
@@ -35,7 +51,7 @@ class ItemsMenuController extends Controller
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
             'categoria_id' => 'required|exists:items__categorias,id',
-            'disponible' => 'required|boolean'
+            'estado' => 'required|in:disponible,no_disponible'
         ]);
 
         try {
@@ -43,9 +59,9 @@ class ItemsMenuController extends Controller
             $item->nombre = $data['nombre'];
             $item->descripcion = $data['descripcion'];
             $item->precio = $data['precio'];
-            $item->items_categoria_id = $data['categoria_id'];
-            $item->disponible = $data['disponible'];
-            $item->items_restaurante_id = 1; 
+            $item->categoria_id = $data['categoria_id'];
+            $item->estado = $data['estado'];
+            $item->restaurante_id = 1;
             $item->save();
 
             if ($request->wantsJson()) {
@@ -95,15 +111,15 @@ class ItemsMenuController extends Controller
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
             'categoria_id' => 'required|exists:items__categorias,id',
-            'disponible' => 'required|boolean'
+            'estado' => 'required|in:disponible,no_disponible'
         ]);
 
         try {
             $items_Menu->nombre = $data['nombre'];
             $items_Menu->descripcion = $data['descripcion'];
             $items_Menu->precio = $data['precio'];
-            $items_Menu->items_categoria_id = $data['categoria_id'];
-            $items_Menu->disponible = $data['disponible'];
+            $items_Menu->categoria_id = $data['categoria_id'];
+            $items_Menu->estado = $data['estado'];
             $items_Menu->save();
 
             if ($request->wantsJson()) {
@@ -130,10 +146,10 @@ class ItemsMenuController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Items_Menu $items_Menu)
+    public function destroy(Items_Menu $items_menu)
     {
         try {
-            $items_Menu->delete();
+            $items_menu->delete();
 
             if (request()->wantsJson()) {
                 return response()->json([
