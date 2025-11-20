@@ -10,11 +10,22 @@
     <link rel="stylesheet" href="{{ asset('style-tables.css') }}">
     <title>ServiceLink - Mesas</title>
     <style>
+        /* Modal scrollable */
+        .mesa-modal {
+            overflow-y: auto;
+            padding: 2rem 0;
+        }
 
+        .modal-content {
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
 <body>
+    <script src="{{ asset('index.js') }}"></script>
 
     <div class="container">
         <!-- Sidebar Section -->
@@ -32,13 +43,13 @@
             </div>
 
             <div class="sidebar">
-                <a href="{{ url('/newhome') }}">
+                <a href="{{ url('/index') }}">
                     <span class="material-icons-sharp">
                         dashboard
                     </span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="#">
+                <a href="{{ route('empleados.index') }}">
                     <span class="material-icons-sharp">
                         person_outline
                     </span>
@@ -331,7 +342,6 @@
     </div>
 
     <!-- <script src="orders.js"></script> -->
-    <script src="{{ asset('index.js') }}"></script>
     <script>
         // JS para modal y selección de mesas
         (function() {
