@@ -4,17 +4,22 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ComandaController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ItemsMenuController;
+use App\Http\Controllers\MesasController;
 
 // Página principal (login)
 Route::get('/', function () {
-    return view('login');
+    return view('Demo.index');
 });
 
-// Página de login
-Route::get('/login', function () {
-    return view('login');
+
+Route::get('/login',function(){
+    return view('Demo.login');
 });
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+
+Route::get('/register',function(){
+    return view('Demo.register');
+});
 
 // Página de bienvenida
 Route::get('/welcome', function () {
@@ -34,15 +39,15 @@ Route::get('/usuarios', [UsuariosController::class, 'index'])->name('usuarios.in
 Route::get('/usuarios/crear', [UsuariosController::class, 'create'])->name('usuarios.create');
 Route::get('/usuarios/{usuario}/editar', [UsuariosController::class, 'edit'])->name('usuarios.edit');
 Route::post('/usuarios', [UsuariosController::class, 'store'])->name('usuarios.store');
-Route::patch('/usuarios/{usuario}', [UsuariosController::class, 'update'])->name('usuarios.update');
-Route::delete('/usuarios/{usuario}', [UsuariosController::class, 'destroy'])->name('usuarios.destroy');
+Route::get('/usuarios/{usuarios}', [UsuariosController::class, 'show'])->name('usuarios.show');
+Route::patch('/usuarios/{usuarios}', [UsuariosController::class, 'update'])->name('usuarios.update');
 
-// CRUD de comandas 
-Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.index');
-Route::get('/comandas/crear', [ComandaController::class, 'create'])->name('comandas.create');
-Route::get('/comandas/{comanda}/editar', [ComandaController::class, 'edit'])->name('comandas.edit');
-Route::get('/comandas/{comanda}/form', [ComandaController::class, 'getEditForm'])->name('comandas.form');
-Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store');
-Route::patch('/comandas/{comanda}', [ComandaController::class, 'update'])->name('comandas.update');
-Route::delete('/comandas/{comanda}', [ComandaController::class, 'destroy'])->name('comandas.destroy');
+// rutas para mesas
+Route::get('/mesas', [MesasController::class, 'index'])->name('mesas.index');
+Route::post('/mesas', [MesasController::class, 'store'])->name('mesas.store');
+Route::patch('/mesas/{id}', [MesasController::class, 'update'])->name('mesas.update');
+Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas.destroy');
 
+// Rutas para items menú
+Route::get('/items_menus', [ItemsMenuController::class, 'index'])->name('items_Menu.index');
+Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_menus.store');
