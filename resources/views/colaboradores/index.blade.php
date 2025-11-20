@@ -315,6 +315,7 @@
                 <div class="form-actions">
                     <button type="button" id="close-modal-btn">Cancelar</button>
                     <button type="submit" class="submit-btn">Guardar</button>
+                    <button type="button" id="reset-password-btn">Reestablecer Contraseña</button>
                 </div>
             </div>
         </form>
@@ -330,6 +331,52 @@
 	const form = document.getElementById('employee-form');
 	const modalTitle = document.getElementById('modal-title');
 	const rutInput = form.querySelector('#rut');
+    const resetPasswordBtn = document.getElementById('reset-password-btn');
+
+    //Función para reestablecer contraseña
+   
+    resetPasswordBtn.addEventListener('click', async () => {
+        const rut = rutInput.value.trim();
+        
+        // Validación simple
+        if (!rut) {
+            alert('Por favor, ingrese el RUT del colaborador.');
+            return;
+        }
+        
+        // Feedback visual (opcional: cambiar texto del botón)
+        const originalText = resetPasswordBtn.innerText;
+        resetPasswordBtn.innerText = 'Enviando...';
+        resetPasswordBtn.disabled = true;
+
+        try {
+            const res = await fetch('/colaboradores/' + encodeURIComponent(rut) + '/reset-password', {
+                method: 'POST', // Coincide con Route::post
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await res.json(); // Leemos la respuesta JSON del controlador
+
+            if (!res.ok) {
+                // Lanzamos error con el mensaje que viene del servidor
+                throw new Error(data.message || 'Error desconocido');
+            }
+
+            alert(data.message); // "Contraseña restablecida y correo enviado"
+            closeModal(); // Cerramos el modal automáticamente si todo salió bien
+
+        } catch (err) {
+            alert('Atención: ' + err.message);
+        } finally {
+            // Restaurar botón
+            resetPasswordBtn.innerText = originalText;
+            resetPasswordBtn.disabled = false;
+        }
+    });
 
 	// Función para formatear RUT
 	function formatRUT(rut) {

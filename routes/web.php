@@ -10,6 +10,8 @@ use App\Http\Controllers\LoginController; // agregado
 use App\Http\Controllers\DashboardController; // agregado
 use App\Http\Controllers\EmpleadoController; // <-- agregado
 use App\Http\Controllers\RestauranteController; // <-- agregado
+use App\Mail\MiPrimerEmail;
+use Illuminate\Support\Facades\Mail;
 
 Route::get('/index', [DashboardController::class, 'index'])->name('index');
 
@@ -57,3 +59,7 @@ Route::delete('/colaboradores/{rut}', [EmpleadoController::class, 'destroy'])->n
 // Rutas para crear y almacenar un restaurante
 Route::get('restaurante/create', [RestauranteController::class, 'create'])->name('restaurante.create');
 Route::post('restaurante/store', [RestauranteController::class, 'store'])->name('restaurante.store');
+
+//Ruta para contraseñas
+Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, 'reestablecerContrasena'])->name('empleados.reset_password');
+

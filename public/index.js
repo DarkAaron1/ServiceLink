@@ -4,14 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('close-btn');
     const darkMode = document.querySelector('.dark-mode');
 
-    // Función para guardar el estado del dark mode en localStorage
-    function saveDarkModeState(isDarkMode) {
-        localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
-    }
-
+    
     // Función para cargar el estado del dark mode desde localStorage
     function loadDarkModeState() {
         return localStorage.getItem('darkMode') === 'true';
+    }
+    
+    // Función para guardar el estado del dark mode en localStorage
+    function saveDarkModeState(isDarkMode) {
+        localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
     }
 
     // Función para actualizar los indicadores visuales (spans)

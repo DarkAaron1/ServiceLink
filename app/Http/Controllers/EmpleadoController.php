@@ -211,4 +211,56 @@ class EmpleadoController extends Controller
 
         return redirect()->route('empleados.index')->with('success','Empleado eliminado correctamente.');
     }
+
+        public function reestablecerContrasena($rut)
+    {
+        // 1. Normalización (asegúrate de tener esta lógica o limpiar el rut aquí)
+        // Si no tienes la función normalizarRUT, usa: str_replace(['.', '-'], '', $rut);
+        $rutNormalizado = $this->normalizarRUT($rut); 
+        
+        // Extraemos pass (ej. 12345678)
+        // Si no tienes la función, usa: substr($rutNormalizado, 0, -1);
+        $passwordRUT = $this->extraerPasswordRUT($rutNormalizado); 
+
+        // 2. Buscar empleado
+        $empleado = \DB::table('empleados')->where('rut', $rutNormalizado)->first();
+
+        if (!$empleado) {
+            // Respuesta JSON de error 404
+            return response()->json(['message' => 'Empleado no encontrado.'], 404);
+        }
+
+        try {
+            // 3. Actualizar DB
+            \DB::table('empleados')
+                ->where('rut', $rutNormalizado)
+                ->update([
+                    'password' => \Hash::make($passwordRUT),
+                    'updated_at' => now(),
+                ]);
+
+            // 4. Enviar Correo
+            $datosCorreo = [
+                'nombre'   => $empleado->nombre,
+                'apellido' => $empleado->apellido,
+                'email'    => $empleado->email // o $empleado->email según tu DB
+            ];
+
+            \Mail::to($empleado->email)->send(new \App\Mail\MiPrimerEmail($datosCorreo));
+
+            // 5. RESPUESTA EXITOSA JSON
+            return response()->json([
+                'success' => true, 
+                'message' => 'Contraseña restablecida y correo enviado.'
+            ], 200);
+
+        } catch (Exception $e) {
+            // Respuesta JSON de error servidor 500
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error interno: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
 }
