@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comandas', function (Blueprint $table) {
+       Schema::create('comandas', function (Blueprint $table) {
             $table->id();
             $table->dateTime('fecha_apertura')->useCurrent();
             $table->dateTime('fecha_cierre')->nullable();
             $table->string('estado')->default('abierta');
-            $table->unsignedBigInteger('usuario_id');
+            $table->string('rut_empleado');
             $table->unsignedBigInteger('mesa_id');
             $table->timestamps();
 
-            $table->foreign('usuario_id')->references('id')->on('usuarios')->onDelete('cascade');
+            $table->foreign('rut_empleado')->references('rut')->on('empleados')->onDelete('cascade');
             $table->foreign('mesa_id')->references('id')->on('mesas')->onDelete('cascade');
         });
     }

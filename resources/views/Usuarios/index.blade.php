@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css')}}">
-    <title>ServiceLink</title>
+    <title>ServiceLink - Usuarios</title>
 </head>
 
 <body>
@@ -33,7 +33,7 @@
                     </span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="#">
+                <a href="{{ route('usuarios.index') }}">
                     <span class="material-icons-sharp">
                         person_outline
                     </span>
@@ -70,14 +70,11 @@
                     </span>
                     <h3>Mesas</h3>
                 </a>
-               <a href="{{ route('admin.index') }}">
-                <span class="material-icons-sharp">
-               group
-                </span>
-                <h3>Usuarios</h3>
-                </a>
-
-
+                <a href="{{ route('usuarios.index') }}">
+                    <span class="material-icons-sharp">
+                        person
+                    </span>
+                    <h3>Usuarios</h3>
                 </a>
                 <!--<a href="#">
                     <span class="material-icons-sharp">
@@ -103,105 +100,61 @@
 
         <!-- Main Content -->
         <main>
-            <h1>Dashboard</h1>
-            <!-- Analyses -->
-            <div class="analyse">
-                <div class="sales">
-                    <div class="status">
-                        <div class="info">
-                            <h3>Total Ingresos</h3>
-                            <h1>$65,024</h1>
-                        </div>
-                        <div class="progresss">
-                            <svg>
-                                <circle cx="38" cy="38" r="36"></circle>
-                            </svg>
-                            <div class="percentage">
-                                <p></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="visits">
-                    <div class="status">
-                        <div class="info">
-                            <h3>Productos Vendidos</h3>
-                            <h1>24,981</h1>
-                        </div>
-                        <div class="progresss">
-                            <svg>
-                                <circle cx="38" cy="38" r="36"></circle>
-                            </svg>
-                            <div class="percentage">
-                                <p></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="searches">
-                    <div class="status">
-                        <div class="info">
-                            <h3>Producto Más Vendido</h3>
-                            <h1>Churrasco Italiano</h1>
-                        </div>
-                        <div class="progresss">
-                            <svg>
-                                <circle cx="38" cy="38" r="36"></circle>
-                            </svg>
-                            <div class="percentage">
-                                <p>1,500</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
+                 
             <!-- End of Analyses -->
 
             <!-- New Users Section -->
-            <div class="new-users">
-                <h2>Usuarios Activos</h2>
-                <div class="user-list">
-                    <div class="user">
-                        <!--img src="images/profile-2.jpg"-->
-                        <h2>Jack</h2>
-                        <p>54 Min Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/profile-3.jpg"-->
-                        <h2>Amir</h2>
-                        <p>3 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/profile-4.jpg"-->
-                        <h2>Ember</h2>
-                        <p>6 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/plus.png"-->
-                        <h2>More</h2>
-                        <p>New User</p>
-                    </div>
+           <div class="new-users">
+                         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                             <h2 style="margin: 0;">Usuarios</h2>
+                             <a href="#" id="new-user-btn" style="background-color: #007bff; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px;">+ Nuevo Usuario</a>
+                         </div>
+
+                         <!-- Modal overlay (hidden) -->
+                         <div id="modal-overlay" style="display:none; position: fixed; inset:0; background: rgba(0,0,0,0.45); z-index: 9999; align-items: center; justify-content: center;">
+                            <div id="modal" role="dialog" aria-modal="true" style="background: #fff; width: 90%; max-width: 820px; margin: 0 auto; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); overflow: hidden;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #eee; background:#fafafa;">
+                                    <h3 style="margin:0;">Crear Nuevo Usuario</h3>
+                                    <button id="close-modal" aria-label="Cerrar" style="background:transparent; border:none; font-size:18px; cursor:pointer;">✖</button>
+                                </div>
+                                          <div style="padding:16px;">
+                                              @include('Usuarios._form', ['action' => route('usuarios.store'), 'method' => 'POST', 'usuario' => null, 'inModal' => true])
+                                          </div>
+                            </div>
+                         </div>
+
+                        @if(session('success'))
+                            <div style="background:#d4edda; border:1px solid #c3e6cb; padding:10px; border-radius:4px; margin-top:12px;">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+                         <div class="user-list" style="margin-top: 20px;">
+             @foreach($usuarios as $usuario)
+            <div class="user">
+                <h2>{{ $usuario->nombre }} {{ $usuario->apellido }}</h2>
+                <p>Correo: {{ $usuario->email }}</p>
+                <p>Rol: {{ $usuario->rol_id }}</p>
+                <p>Estado: {{ $usuario->estado }}</p>
+                <p>Creado: {{ \Carbon\Carbon::parse($usuario->created_at)->format('d/m/Y') }}</p>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <a href="{{ route('usuarios.edit', $usuario->rut) }}" style="background-color: #ffc107; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px;">✏️ Editar</a>
+                    <form action="{{ route('usuarios.destroy', $usuario->rut) }}" method="POST" style="display: inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="background-color: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer;" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">🗑️ Eliminar</button>
+                    </form>
                 </div>
             </div>
+        @endforeach
+    </div>
+</div>
+
             <!-- End of New Users Section -->
 
             <!-- Recent Orders Table -->
-            <div class="recent-orders">
-                <h2>Ordenes Recientes</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mesa</th>
-                            <th>Productos</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <a href="#">Show All</a>
-            </div>
+            
             <!-- End of Recent Orders -->
 
         </main>
@@ -308,7 +261,60 @@
     </div>
 
     <!-- <script src="orders.js"></script> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var btn = document.getElementById('new-user-btn');
+            var overlay = document.getElementById('modal-overlay');
+            var closeBtn = document.getElementById('close-modal');
+            function openModal() {
+                if (!overlay) return;
+                overlay.style.display = 'flex';
+                // focus first input
+                var first = overlay.querySelector('input, select, textarea');
+                if (first) first.focus();
+            }
+            function closeModal() {
+                if (!overlay) return;
+                overlay.style.display = 'none';
+            }
+
+            if (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openModal();
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    closeModal();
+                });
+            }
+
+            // Cancel button inside form (when inModal)
+            document.addEventListener('click', function (e) {
+                if (e.target && e.target.id === 'cancel-new-user') {
+                    e.preventDefault();
+                    closeModal();
+                }
+            });
+
+            // click outside modal to close
+            if (overlay) {
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) closeModal();
+                });
+            }
+
+            // Esc key to close
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeModal();
+            });
+        });
+    </script>
     <script src="{{ asset('index.js') }}"></script>
 </body>
+
 
 </html>

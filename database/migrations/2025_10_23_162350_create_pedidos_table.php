@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('valor_item_ATM', 8, 3); //Valor del item al momento de la orden
             $table->timestamps();
 
-            $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');
+            $table->foreign('item_id')->references('id')->on('items__menus')->onDelete('cascade');
             $table->foreign('comanda_id')->references('id')->on('comandas')->onDelete('cascade');
         });
     }

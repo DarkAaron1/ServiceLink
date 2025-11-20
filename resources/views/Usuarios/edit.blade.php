@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css')}}">
-    <title>ServiceLink</title>
+    <title>ServiceLink - Editar Usuario</title>
 </head>
 
 <body>
@@ -33,7 +33,7 @@
                     </span>
                     <h3>Dashboard</h3>
                 </a>
-                <a href="#">
+                <a href="{{ route('usuarios.index') }}">
                     <span class="material-icons-sharp">
                         person_outline
                     </span>
@@ -70,27 +70,12 @@
                     </span>
                     <h3>Mesas</h3>
                 </a>
-               <a href="{{ route('admin.index') }}">
-                <span class="material-icons-sharp">
-               group
-                </span>
-                <h3>Usuarios</h3>
-                </a>
-
-
-                </a>
-                <!--<a href="#">
+                <a href="{{ route('usuarios.index') }}">
                     <span class="material-icons-sharp">
-                        settings
+                        person
                     </span>
-                    <h3>Settings</h3>
+                    <h3>Usuarios</h3>
                 </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        add
-                    </span>
-                    <h3>New Login</h3>
-                </a>-->
                 <a href="#">
                     <span class="material-icons-sharp">
                         logout
@@ -103,106 +88,16 @@
 
         <!-- Main Content -->
         <main>
-            <h1>Dashboard</h1>
-            <!-- Analyses -->
-            <div class="analyse">
-                <div class="sales">
-                    <div class="status">
-                        <div class="info">
-                            <h3>Total Ingresos</h3>
-                            <h1>$65,024</h1>
-                        </div>
-                        <div class="progresss">
-                            <svg>
-                                <circle cx="38" cy="38" r="36"></circle>
-                            </svg>
-                            <div class="percentage">
-                                <p></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="visits">
-                    <div class="status">
-                        <div class="info">
-                            <h3>Productos Vendidos</h3>
-                            <h1>24,981</h1>
-                        </div>
-                        <div class="progresss">
-                            <svg>
-                                <circle cx="38" cy="38" r="36"></circle>
-                            </svg>
-                            <div class="percentage">
-                                <p></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="searches">
-                    <div class="status">
-                        <div class="info">
-                            <h3>Producto Más Vendido</h3>
-                            <h1>Churrasco Italiano</h1>
-                        </div>
-                        <div class="progresss">
-                            <svg>
-                                <circle cx="38" cy="38" r="36"></circle>
-                            </svg>
-                            <div class="percentage">
-                                <p>1,500</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End of Analyses -->
-
-            <!-- New Users Section -->
+            <!-- Edit User Form Section -->
             <div class="new-users">
-                <h2>Usuarios Activos</h2>
-                <div class="user-list">
-                    <div class="user">
-                        <!--img src="images/profile-2.jpg"-->
-                        <h2>Jack</h2>
-                        <p>54 Min Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/profile-3.jpg"-->
-                        <h2>Amir</h2>
-                        <p>3 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/profile-4.jpg"-->
-                        <h2>Ember</h2>
-                        <p>6 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/plus.png"-->
-                        <h2>More</h2>
-                        <p>New User</p>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                    <h2 style="margin: 0;">Editar Usuario</h2>
+                    <a href="{{ route('usuarios.index') }}" style="background-color: #6c757d; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px;">Cancelar</a>
                 </div>
-            </div>
-            <!-- End of New Users Section -->
 
-            <!-- Recent Orders Table -->
-            <div class="recent-orders">
-                <h2>Ordenes Recientes</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mesa</th>
-                            <th>Productos</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <a href="#">Show All</a>
+                @include('Usuarios._form', ['action' => route('usuarios.update', $usuario->rut), 'method' => 'PATCH', 'usuario' => $usuario])
             </div>
-            <!-- End of Recent Orders -->
+            <!-- End of Edit User Form Section -->
 
         </main>
         <!-- End of Main Content -->
@@ -225,14 +120,11 @@
                 </div>
 
                 <div class="profile">
-                        <div class="info">
-                            <p>Bienvenido, <b>Usuario</b></p>
-                            <small class="text-muted">Admin</small>
-                        </div>
-                        <!--div class="profile-photo">
-                            <img src="{{ asset('favicon.ico') }}">
-                        </div-->
+                    <div class="info">
+                        <p>Bienvenido, <b>Usuario</b></p>
+                        <small class="text-muted">Admin</small>
                     </div>
+                </div>
 
             </div>
             <!-- End of Nav -->
@@ -304,10 +196,8 @@
 
         </div>
 
-
     </div>
 
-    <!-- <script src="orders.js"></script> -->
     <script src="{{ asset('index.js') }}"></script>
 </body>
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\usuarios;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -10,100 +10,119 @@ use Illuminate\Validation\Rule;
 class UsuariosController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra todos los usuarios.
      */
     public function index()
     {
-        $usuarios = usuarios::orderBy('created_at', 'desc')->get();
-        return view('admin', compact('usuarios'));
+        $usuarios = Usuario::orderBy('created_at', 'desc')->get();
+        return view('Usuarios.index', compact('usuarios'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario para crear un nuevo usuario.
      */
     public function create()
     {
-        //
+        return view('Usuarios.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Muestra el formulario para editar un usuario.
+     */
+    public function edit(Usuario $usuario)
+    {
+        return view('Usuarios.edit', compact('usuario'));
+    }
+
+    /**
+     * Guarda un nuevo usuario.
      */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'run' => 'required|string|unique:usuarios,run',
-            'username' => 'required|string|unique:usuarios,username',
-            'nombre' => 'required|string',
-            'apellido' => 'required|string',
+            'rut' => 'required|string|unique:usuarios,rut',
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:100',
             'email' => 'required|email|unique:usuarios,email',
             'password' => 'required|string|min:6|confirmed',
-            'nacimiento' => 'required|date',
-            'telefono' => 'nullable|numeric',
-            'estado' => 'nullable|in:on',
+            'fecha_nacimiento' => 'required|date',
+            'fecha_creacion' => 'nullable|date',
+            'rol_id' => 'required|exists:roles,id',
+            'estado' => 'nullable|boolean',
         ]);
 
-        $user = new usuarios();
-        $user->run = $data['run'];
-        $user->username = $data['username'];
-        $user->nombre = $data['nombre'];
-        $user->apellido = $data['apellido'];
-        $user->email = $data['email'];
-        $user->password = Hash::make($data['password']);
-        $user->nacimiento = $data['nacimiento'];
-        $user->telefono = $data['telefono'] ?? null;
-        $user->estado = isset($data['estado']) ? 1 : 0;
-        $user->save();
+        $usuario = new Usuario();
+        $usuario->rut = $data['rut'];
+        $usuario->nombre = $data['nombre'];
+        $usuario->apellido = $data['apellido'];
+        $usuario->email = $data['email'];
+        $usuario->password = Hash::make($data['password']);
+        $usuario->fecha_nacimiento = $data['fecha_nacimiento'];
+        $usuario->estado = isset($data['estado']) ? 1 : 0;
+        $usuario->rol_id = $data['rol_id'];
+        if (!empty($data['fecha_creacion'])) {
+            $usuario->created_at = $data['fecha_creacion'];
+        }
+        $usuario->save();
 
-        return redirect()->route('admin.index')->with('success', 'Usuario creado correctamente.');
+        return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
     }
 
     /**
-     * Display the specified resource.
+     * Muestra un usuario específico.
      */
-    public function show(usuarios $usuarios)
+    public function show(Usuario $usuario)
     {
-        return response()->json($usuarios);
+        return response()->json($usuario);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Actualiza un usuario o cambia su estado.
      */
-    public function edit(usuarios $usuarios)
+    public function update(Request $request, Usuario $usuario)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     * Aquí se usa para habilitar/inhabilitar usuario (toggle estado).
-     */
-    public function update(Request $request, usuarios $usuarios)
-    {
-        // toggle estado si se envía acción
+        // Toggle de estado
         if ($request->has('toggle_estado')) {
-            $usuarios->estado = $usuarios->estado ? 0 : 1;
-            $usuarios->save();
-            return redirect()->route('admin.index')->with('success', 'Estado actualizado.');
+            $usuario->estado = !$usuario->estado;
+            $usuario->save();
+            return redirect()->route('usuarios.index')->with('success', 'Estado actualizado.');
         }
 
-        // opción para actualizar otros campos (no requerida ahora)
+        // Actualización normal
         $data = $request->validate([
-            'username' => ['sometimes','required', Rule::unique('usuarios','username')->ignore($usuarios->run,'run')],
-            'email' => ['sometimes','required','email', Rule::unique('usuarios','email')->ignore($usuarios->run,'run')],
-            'nombre' => 'sometimes|required|string',
-            'apellido' => 'sometimes|required|string',
+            'nombre' => 'sometimes|required|string|max:100',
+            'apellido' => 'sometimes|required|string|max:100',
+            'email' => [
+                'sometimes', 'required', 'email',
+                Rule::unique('usuarios', 'email')->ignore($usuario->rut, 'rut'),
+            ],
+            'fecha_creacion' => 'sometimes|date',
+            'rol_id' => 'sometimes|required|exists:roles,id',
         ]);
 
-        $usuarios->update($data);
-        return redirect()->route('admin.index')->with('success', 'Usuario actualizado.');
+        // Manejar fecha de creación por separado 
+        $fechaCreacion = null;
+        if (isset($data['fecha_creacion'])) {
+            $fechaCreacion = $data['fecha_creacion'];
+            unset($data['fecha_creacion']);
+        }
+
+        $usuario->update($data);
+
+        if ($fechaCreacion) {
+            $usuario->created_at = $fechaCreacion;
+            $usuario->save();
+        }
+
+        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un usuario.
      */
-    public function destroy(usuarios $usuarios)
+    public function destroy(Usuario $usuario)
     {
-        //
+        $usuario->delete();
+        return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente.');
     }
 }

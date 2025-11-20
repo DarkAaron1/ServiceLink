@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comanda;
+use App\Models\Empleados;
+use App\Models\Mesas;
 use Illuminate\Http\Request;
 
 class ComandaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Mostrar listado de comandas.
      */
     public function index()
     {
-        //
+        $comandas = Comanda::with(['empleado', 'mesa'])->orderBy('created_at', 'desc')->get();
+        $empleados = Empleados::all();
+        $mesas = Mesas::all();
+        return view('Comandas.index', compact('comandas', 'empleados', 'mesas'));
     }
 
     /**
@@ -20,7 +25,9 @@ class ComandaController extends Controller
      */
     public function create()
     {
-        //
+        $empleados = Empleados::all();
+        $mesas = Mesas::all();
+        return view('Comandas.create', compact('empleados', 'mesas'));
     }
 
     /**
@@ -28,7 +35,17 @@ class ComandaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'rut_empleado' => 'required|exists:empleados,rut',
+            'mesa_id' => 'required|exists:mesas,id',
+            'estado' => 'required|in:en_preparacion,listo,entregado',
+            'fecha_apertura' => 'required|date',
+            'fecha_cierre' => 'nullable|date',
+        ]);
+
+        Comanda::create($validated);
+
+        return redirect()->route('comandas.index')->with('success', 'Comanda creada exitosamente');
     }
 
     /**
@@ -44,7 +61,26 @@ class ComandaController extends Controller
      */
     public function edit(Comanda $comanda)
     {
-        //
+        $empleados = Empleados::all();
+        $mesas = Mesas::all();
+        return view('Comandas.edit', compact('comanda', 'empleados', 'mesas'));
+    }
+
+    /**
+     * Get the edit form for AJAX request
+     */
+    public function getEditForm(Comanda $comanda)
+    {
+        $empleados = Empleados::all();
+        $mesas = Mesas::all();
+        return view('Comandas._form', [
+            'action' => route('comandas.update', $comanda),
+            'method' => 'PATCH',
+            'comanda' => $comanda,
+            'inModal' => true,
+            'empleados' => $empleados,
+            'mesas' => $mesas
+        ]);
     }
 
     /**
@@ -52,7 +88,17 @@ class ComandaController extends Controller
      */
     public function update(Request $request, Comanda $comanda)
     {
-        //
+        $validated = $request->validate([
+            'rut_empleado' => 'required|exists:empleados,rut',
+            'mesa_id' => 'required|exists:mesas,id',
+            'estado' => 'required|in:en_preparacion,listo,entregado',
+            'fecha_apertura' => 'required|date',
+            'fecha_cierre' => 'nullable|date',
+        ]);
+
+        $comanda->update($validated);
+
+        return redirect()->route('comandas.index')->with('success', 'Comanda actualizada exitosamente');
     }
 
     /**
@@ -60,6 +106,7 @@ class ComandaController extends Controller
      */
     public function destroy(Comanda $comanda)
     {
-        //
+        $comanda->delete();
+        return redirect()->route('comandas.index')->with('success', 'Comanda eliminada exitosamente');
     }
 }

@@ -11,22 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('usuarios', function (Blueprint $table) {
+       Schema::create('empleados', function (Blueprint $table) {
             $table->string('rut')->primary();
             $table->string('nombre');
             $table->string('apellido');
+            $table->date('fecha_nacimiento');
+            $table->integer('fono');
             $table->string('email')->unique();
             $table->string('password');
-            $table->date('fecha_nacimiento');
-            $table->dateTime('fecha_creacion')->nullable();
-            $table->dateTime('email_verified_at')->nullable();
+            $table->string('cargo');
             $table->string('estado')->default('inactivo');
-            $table->unsignedBigInteger('rol_id');
+            $table->unsignedBigInteger('restaurante_id');
             $table->rememberToken();
             $table->timestamps();
 
-            $table->foreign('rol_id')->references('id')->on('roles')->onDelete('cascade');
-           
+            $table->foreign('restaurante_id')->references('id')->on('restaurantes')->onDelete('cascade');
         });
     }
 
@@ -35,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('usuarios');
+        Schema::dropIfExists('empleados');
     }
 };
