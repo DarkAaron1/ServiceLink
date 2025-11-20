@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use App\Models\Usuario; // agregado
+use Illuminate\Support\Facades\Mail;
+use App\Mail\MiPrimerEmail;
+use App\Mail\EmpleadoBienvenidaMail;
 
 class EmpleadoController extends Controller
 {
@@ -129,10 +132,31 @@ class EmpleadoController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            // ==========================================================
+        // 📩 INICIO ENVÍO DE CORREO (Después de la inserción exitosa)
+        // ==========================================================
+        
+        $datosCorreo = [
+            'nombre'   => $data['nombre'],
+            'apellido' => $data['apellido'],
+            'email'    => $data['email'], 
+        ];
+
+        // 💡 Usamos try/catch local para que un fallo en el correo NO detenga la creación del empleado
+        try {
+            Mail::to($datosCorreo['email'])->send(new EmpleadoBienvenidaMail($datosCorreo));
         } catch (Exception $e) {
-            return back()->withInput()->withErrors(['db' => 'Error al crear empleado: '.$e->getMessage()]);
+            // Loguear el error para revisar luego. El usuario final no verá este error.
+            \Log::error('Fallo el envío de bienvenida a ' . $datosCorreo['email'] . ': ' . $e->getMessage());
+            // Opcional: Podrías retornar un mensaje de éxito con advertencia.
         }
 
+        // 📩 FIN ENVÍO DE CORREO
+        // ==========================================================
+
+    } catch (Exception $e) { 
+        return back()->withInput()->withErrors(['db' => 'Error al crear empleado: '.$e->getMessage()]);
+    }
         return redirect()->route('empleados.index')->with('success','Empleado creado correctamente.');
     }
 
@@ -246,7 +270,7 @@ class EmpleadoController extends Controller
                 'email'    => $empleado->email // o $empleado->email según tu DB
             ];
 
-            \Mail::to($empleado->email)->send(new \App\Mail\MiPrimerEmail($datosCorreo));
+            \Mail::to($empleado->email)->send(new MiPrimerEmail($datosCorreo));
 
             // 5. RESPUESTA EXITOSA JSON
             return response()->json([
