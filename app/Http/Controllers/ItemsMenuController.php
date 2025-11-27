@@ -20,6 +20,22 @@ class ItemsMenuController extends Controller
     }
 
     /**
+     * Muestra la carta pública con los ítems disponibles agrupados por categoría.
+     */
+    public function verCarta()
+    {
+        $categorias = Items_Categoria::whereHas('items', function ($q) {
+                $q->where('estado', 'disponible');
+            })
+            ->with(['items' => function ($q) {
+                $q->where('estado', 'disponible');
+            }])
+            ->get();
+
+        return view('Items_Menu.ver_menu', compact('categorias'));
+    }
+
+    /**
      * Return items by category (AJAX)
      */
     public function byCategoria($categoria)

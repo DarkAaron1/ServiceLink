@@ -54,8 +54,12 @@ Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_
 Route::get('/items_menus/{items_Menu}', [ItemsMenuController::class, 'show'])->name('items_menus.show');
 Route::patch('/items_menus/{items_Menu}', [ItemsMenuController::class, 'update'])->name('items_menus.update');
 Route::delete('/items_menus/{items_menu}', [ItemsMenuController::class, 'destroy'])->name('items_menus.destroy');
+
 // Filtrar por categoría
 Route::get('/items_menus/categoria/{categoria}', [ItemsMenuController::class, 'byCategoria'])->name('items_menus.byCategoria');
+
+// Ruta pública para mostrar la carta/menu al cliente
+Route::get('/carta', [ItemsMenuController::class, 'verCarta'])->name('menu.carta');
 
 Route::get('/categorias', [ItemsCategoriaController::class, 'index'])->name('categorias.index');
 Route::post('/items_categorias', [ItemsCategoriaController::class, 'store'])->name('items_categorias.store');

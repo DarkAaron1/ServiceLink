@@ -314,7 +314,7 @@
                     <p>{{ $rolName?? 'Rol' }}</p>
                 </div>
             </div>
-
+{{-- 
             <div class="reminders">
                 <div class="header">
                     <h2>Notificaciones</h2>
@@ -371,7 +371,7 @@
                 </div>
 
             </div>
-
+ --}}
         </div>
 
 
@@ -634,16 +634,40 @@
                             // Actualizar la tarjeta en la interfaz
                             const mesaCard = document.querySelector(`.mesa-card[data-id="${mesaId}"]`);
                             if (mesaCard) {
-                                mesaCard.querySelector('h3').textContent = formData.get('nombre');
-                                mesaCard.className =
-                                    `mesa-card estado-${formData.get('estado').toLowerCase()}`;
-                                mesaCard.querySelector('.estado-indicador').textContent = formData.get(
-                                    'estado');
+                                // Preferir los datos devueltos por el servidor (data.mesa)
+                                const mesaData = data.mesa || {};
+                                const nombre = mesaData.nombre ?? formData.get('nombre');
+                                const estado = mesaData.estado ?? formData.get('estado');
+                                const detalle = mesaData.detalle_reserva ?? formData.get('detalle_reserva') ?? '';
 
-                                // Actualizar el botón de editar con los nuevos datos
+                                mesaCard.querySelector('h3').textContent = nombre;
+                                mesaCard.className = `mesa-card estado-${estado.toLowerCase()}`;
+                                mesaCard.querySelector('.estado-indicador').textContent = estado;
+
+                                // Actualizar/crear/eliminar el párrafo de reserva (detalle_reserva)
+                                let reservaP = mesaCard.querySelector('.reservation-detail');
+                                if (estado === 'Reservada' && detalle && detalle.trim() !== '') {
+                                    if (reservaP) {
+                                        reservaP.textContent = 'Reserva: ' + detalle;
+                                    } else {
+                                        const p = document.createElement('p');
+                                        p.className = 'reservation-detail filtro_reserva';
+                                        p.style.fontSize = '0.8rem';
+                                        p.style.marginTop = '0.4rem';
+                                        p.textContent = 'Reserva: ' + detalle;
+                                        const actions = mesaCard.querySelector('.mesa-actions');
+                                        if (actions) mesaCard.insertBefore(p, actions);
+                                        else mesaCard.appendChild(p);
+                                    }
+                                } else {
+                                    if (reservaP) reservaP.remove();
+                                }
+
+                                // Actualizar el botón de editar
                                 const editBtn = mesaCard.querySelector('.edit');
+                                const esc = s => (s + '').replace(/'/g, "\\'");
                                 editBtn.setAttribute('onclick',
-                                    `openEditModal(${mesaId}, '${formData.get('nombre')}', '${formData.get('estado')}')`
+                                    `openEditModal(${mesaId}, '${esc(nombre)}', '${esc(estado)}', '${esc(detalle)}')`
                                 );
                             }
 

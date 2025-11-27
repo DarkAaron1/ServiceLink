@@ -319,7 +319,7 @@
                 </div>
             </div>
 
-            <div class="reminders">
+          {{--   <div class="reminders">
                 <div class="header">
                     <h2>Notificaciones</h2>
                     <span class="material-icons-sharp">
@@ -374,7 +374,7 @@
                     </div>
                 </div>
 
-            </div>
+            </div> --}}
 
         </div>
 
