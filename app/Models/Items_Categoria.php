@@ -10,12 +10,23 @@ class Items_Categoria extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'restaurante_id',
     ];
 
 
     public function items(): HasMany
     {
-        return $this->hasMany(Items_Menu::class, 'categoria_id');
+        // Si la categoría está asociada a un restaurante, limitar los items a ese restaurante
+        $relation = $this->hasMany(Items_Menu::class, 'categoria_id');
+        if (! is_null($this->restaurante_id)) {
+            $relation->where('restaurante_id', $this->restaurante_id);
+        }
+        return $relation;
+    }
+
+    public function restaurante()
+    {
+        return $this->belongsTo(Restaurante::class, 'restaurante_id');
     }
 
 }

@@ -59,7 +59,8 @@ Route::delete('/items_menus/{items_menu}', [ItemsMenuController::class, 'destroy
 Route::get('/items_menus/categoria/{categoria}', [ItemsMenuController::class, 'byCategoria'])->name('items_menus.byCategoria');
 
 // Ruta pública para mostrar la carta/menu al cliente
-Route::get('/carta', [ItemsMenuController::class, 'verCarta'])->name('menu.carta');
+// Ahora acepta un id de restaurante: /carta/{restauranteId}
+Route::get('/carta/{restaurante}', [ItemsMenuController::class, 'verCarta'])->name('menu.carta');
 
 Route::get('/categorias', [ItemsCategoriaController::class, 'index'])->name('categorias.index');
 Route::post('/items_categorias', [ItemsCategoriaController::class, 'store'])->name('items_categorias.store');
