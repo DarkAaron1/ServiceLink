@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mesas;
+use App\Models\Restaurante;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class MesasController extends Controller
@@ -12,7 +14,22 @@ class MesasController extends Controller
      */
     public function index()
     {
-        $mesas = Mesas::with('restaurante')->get();
+        // Si el admin tiene contexto de restaurante, listar solo sus mesas
+        $restauranteId = null;
+        $rutSesion = request()->session()->get('usuario_rut');
+        if ($rutSesion) {
+            $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+            if ($rest) $restauranteId = $rest->id;
+        } elseif (Auth::user() && isset(Auth::user()->rut)) {
+            $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
+            if ($rest) $restauranteId = $rest->id;
+        }
+
+        if ($restauranteId) {
+            $mesas = Mesas::with('restaurante')->where('restaurante_id', $restauranteId)->get();
+        } else {
+            $mesas = Mesas::with('restaurante')->get();
+        }
         return view('mesas.index', compact('mesas'));
     }
 
@@ -39,8 +56,26 @@ class MesasController extends Controller
             $mesa->estado = $data['estado'];
             // Guardar detalle_reserva si aplica
             $mesa->detalle_reserva = $data['detalle_reserva'] ?? null;
-            // Temporalmente asignamos un restaurante_id fijo (deberías ajustar esto según tu lógica de negocio)
-            $mesa->restaurante_id = 1;
+            // Asignar restaurante según contexto (admin autenticado) o petición
+            $restauranteId = null;
+            $rutSesion = request()->session()->get('usuario_rut');
+            if ($rutSesion) {
+                $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+                if ($rest) $restauranteId = $rest->id;
+            } elseif (Auth::user() && isset(Auth::user()->rut)) {
+                $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
+                if ($rest) $restauranteId = $rest->id;
+            }
+
+            if (! $restauranteId && $request->filled('restaurante_id')) {
+                $restauranteId = $request->input('restaurante_id');
+            }
+
+            if (! $restauranteId) {
+                throw new \Exception('No se pudo determinar el restaurante para la mesa.');
+            }
+
+            $mesa->restaurante_id = $restauranteId;
             $mesa->save();
 
             if ($request->wantsJson()) {
