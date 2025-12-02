@@ -13,6 +13,7 @@ class Mesas extends Model
     protected $fillable = [
         'nombre',
         'estado',
+        'detalle_reserva',
         'restaurante_id',
     ];
 

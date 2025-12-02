@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Items_Menu;
 use Illuminate\Http\Request;
+use App\Models\Items_Categoria;
+use App\Models\Restaurante;
+use Illuminate\Support\Facades\Auth;
+
 
 class ItemsMenuController extends Controller
 {
@@ -12,9 +16,86 @@ class ItemsMenuController extends Controller
      */
     public function index()
     {
-        $itemsMenu = Items_Menu::with('categoria')->get();
-        $categorias = \App\Models\Items_Categoria::all();
-        return view('items_Menu.index', compact('itemsMenu', 'categorias'));
+        // Intenta obtener el restaurante desde sesión/autenticación para el admin.
+        $restauranteId = $this->getContextRestauranteId();
+
+        if ($restauranteId) {
+            $itemsMenu = Items_Menu::with('categoria')->where('restaurante_id', $restauranteId)->get();
+            $categorias = Items_Categoria::where('restaurante_id', $restauranteId)->get();
+        } else {
+            // fallback: mostrar todos si no hay contexto
+            $itemsMenu = Items_Menu::with('categoria')->get();
+            $categorias = Items_Categoria::all();
+        }
+
+        return view('Items_Menu.index', compact('itemsMenu', 'categorias'));
+    }
+
+    /**
+     * Muestra la carta pública con los ítems disponibles agrupados por categoría.
+     */
+    public function verCarta($restauranteId)
+    {
+        // Cargar restaurante y validar
+        $restaurante = Restaurante::findOrFail($restauranteId);
+
+        // Mostrar solo categorias vinculadas al restaurante (o globales si las conserva)
+        $categorias = Items_Categoria::where(function ($q) use ($restauranteId) {
+                $q->where('restaurante_id', $restauranteId)->orWhereNull('restaurante_id');
+            })
+            ->whereHas('items', function ($q) use ($restauranteId) {
+                $q->where('estado', 'disponible')->where('restaurante_id', $restauranteId);
+            })
+            ->with(['items' => function ($q) use ($restauranteId) {
+                $q->where('estado', 'disponible')->where('restaurante_id', $restauranteId);
+            }])
+            ->get();
+
+        return view('Items_Menu.ver_menu', compact('categorias', 'restaurante'));
+    }
+
+    /**
+     * Return items by category (AJAX)
+     */
+    public function byCategoria($categoria)
+    {
+        $restauranteId = $this->getContextRestauranteId();
+
+        if ($categoria === 'all') {
+            $query = Items_Menu::with('categoria');
+        } else {
+            $query = Items_Menu::with('categoria')->where('categoria_id', $categoria);
+        }
+
+        if ($restauranteId) {
+            $query->where('restaurante_id', $restauranteId);
+        }
+
+        $items = $query->get();
+
+        return response()->json($items);
+    }
+
+    /**
+     * Determine restaurant context for admin actions.
+     * It tries session('usuario_rut') then Auth::user() rut, and finds the Restaurante where rut_admin matches.
+     */
+    protected function getContextRestauranteId()
+    {
+        $rutSesion = request()->session()->get('usuario_rut');
+
+        if ($rutSesion) {
+            $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+            if ($rest) return $rest->id;
+        }
+
+        $userAuth = Auth::user();
+        if ($userAuth && isset($userAuth->rut)) {
+            $rest = Restaurante::where('rut_admin', $userAuth->rut)->first();
+            if ($rest) return $rest->id;
+        }
+
+        return null;
     }
 
     /**
@@ -30,22 +111,42 @@ class ItemsMenuController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
+        // validar categoría admitiendo solo categorías del restaurante en contexto (si existe)
+        $restauranteIdForValidation = $this->getContextRestauranteId() ?? ($request->filled('restaurante_id') ? $request->input('restaurante_id') : null);
+
+        $rules = [
             'nombre' => 'required|string|max:255',
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
-            'categoria_id' => 'required|exists:items__categorias,id',
-            'disponible' => 'required|boolean'
-        ]);
+            'estado' => 'required|in:disponible,no_disponible'
+        ];
+
+        if ($restauranteIdForValidation) {
+            $rules['categoria_id'] = 'required|exists:items__categorias,id,restaurante_id,' . $restauranteIdForValidation;
+        } else {
+            $rules['categoria_id'] = 'required|exists:items__categorias,id';
+        }
+
+        $data = $request->validate($rules);
 
         try {
             $item = new Items_Menu();
             $item->nombre = $data['nombre'];
             $item->descripcion = $data['descripcion'];
             $item->precio = $data['precio'];
-            $item->items_categoria_id = $data['categoria_id'];
-            $item->disponible = $data['disponible'];
-            $item->items_restaurante_id = 1; 
+            $item->categoria_id = $data['categoria_id'];
+            $item->estado = $data['estado'];
+            // Asignar restaurante desde contexto (admin autenticado) para evitar hardcode
+            $restauranteId = $this->getContextRestauranteId();
+            if (! $restauranteId && $request->filled('restaurante_id')) {
+                $restauranteId = $request->input('restaurante_id');
+            }
+
+            if (! $restauranteId) {
+                throw new \Exception('No se pudo determinar el restaurante para el item.');
+            }
+
+            $item->restaurante_id = $restauranteId;
             $item->save();
 
             if ($request->wantsJson()) {
@@ -90,20 +191,30 @@ class ItemsMenuController extends Controller
      */
     public function update(Request $request, Items_Menu $items_Menu)
     {
-        $data = $request->validate([
+        // validar cambios en update: asegurar que la categoria pertenezca al restaurante de contexto
+        $restauranteIdForValidation = $this->getContextRestauranteId();
+
+        $rules = [
             'nombre' => 'required|string|max:255',
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
-            'categoria_id' => 'required|exists:items__categorias,id',
-            'disponible' => 'required|boolean'
-        ]);
+            'estado' => 'required|in:disponible,no_disponible'
+        ];
+
+        if ($restauranteIdForValidation) {
+            $rules['categoria_id'] = 'required|exists:items__categorias,id,restaurante_id,' . $restauranteIdForValidation;
+        } else {
+            $rules['categoria_id'] = 'required|exists:items__categorias,id';
+        }
+
+        $data = $request->validate($rules);
 
         try {
             $items_Menu->nombre = $data['nombre'];
             $items_Menu->descripcion = $data['descripcion'];
             $items_Menu->precio = $data['precio'];
-            $items_Menu->items_categoria_id = $data['categoria_id'];
-            $items_Menu->disponible = $data['disponible'];
+            $items_Menu->categoria_id = $data['categoria_id'];
+            $items_Menu->estado = $data['estado'];
             $items_Menu->save();
 
             if ($request->wantsJson()) {
@@ -130,10 +241,16 @@ class ItemsMenuController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Items_Menu $items_Menu)
+    public function destroy(Items_Menu $items_menu)
     {
         try {
-            $items_Menu->delete();
+            // Si hay contexto administrador, asegurar que el item pertenece al mismo restaurante
+            $contextRest = $this->getContextRestauranteId();
+            if ($contextRest && $items_menu->restaurante_id && $items_menu->restaurante_id != $contextRest) {
+                throw new \Exception('No autorizado para eliminar este item');
+            }
+
+            $items_menu->delete();
 
             if (request()->wantsJson()) {
                 return response()->json([

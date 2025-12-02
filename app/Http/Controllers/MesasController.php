@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mesas;
+use App\Models\Restaurante;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class MesasController extends Controller
@@ -12,7 +14,22 @@ class MesasController extends Controller
      */
     public function index()
     {
-        $mesas = Mesas::with('restaurante')->get();
+        // Si el admin tiene contexto de restaurante, listar solo sus mesas
+        $restauranteId = null;
+        $rutSesion = request()->session()->get('usuario_rut');
+        if ($rutSesion) {
+            $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+            if ($rest) $restauranteId = $rest->id;
+        } elseif (Auth::user() && isset(Auth::user()->rut)) {
+            $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
+            if ($rest) $restauranteId = $rest->id;
+        }
+
+        if ($restauranteId) {
+            $mesas = Mesas::with('restaurante')->where('restaurante_id', $restauranteId)->get();
+        } else {
+            $mesas = Mesas::with('restaurante')->get();
+        }
         return view('mesas.index', compact('mesas'));
     }
 
@@ -30,14 +47,35 @@ class MesasController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'estado' => 'required|string|in:Disponible,Ocupada,Reservada',
+            'detalle_reserva' => 'nullable|string|max:255|required_if:estado,Reservada',
         ]);
 
         try {
             $mesa = new Mesas();
             $mesa->nombre = $data['nombre'];
             $mesa->estado = $data['estado'];
-            // Temporalmente asignamos un restaurante_id fijo (deberías ajustar esto según tu lógica de negocio)
-            $mesa->restaurante_id = 1;
+            // Guardar detalle_reserva si aplica
+            $mesa->detalle_reserva = $data['detalle_reserva'] ?? null;
+            // Asignar restaurante según contexto (admin autenticado) o petición
+            $restauranteId = null;
+            $rutSesion = request()->session()->get('usuario_rut');
+            if ($rutSesion) {
+                $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+                if ($rest) $restauranteId = $rest->id;
+            } elseif (Auth::user() && isset(Auth::user()->rut)) {
+                $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
+                if ($rest) $restauranteId = $rest->id;
+            }
+
+            if (! $restauranteId && $request->filled('restaurante_id')) {
+                $restauranteId = $request->input('restaurante_id');
+            }
+
+            if (! $restauranteId) {
+                throw new \Exception('No se pudo determinar el restaurante para la mesa.');
+            }
+
+            $mesa->restaurante_id = $restauranteId;
             $mesa->save();
 
             if ($request->wantsJson()) {
@@ -85,12 +123,19 @@ class MesasController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'estado' => 'required|string|in:Disponible,Ocupada,Reservada',
+            'detalle_reserva' => 'nullable|string|max:255|required_if:estado,Reservada',
         ]);
 
         try {
             $mesa = Mesas::findOrFail($id);
             $mesa->nombre = $data['nombre'];
             $mesa->estado = $data['estado'];
+            // Guardar o limpiar detalle_reserva según el estado
+            if (isset($data['detalle_reserva']) && $data['estado'] === 'Reservada') {
+                $mesa->detalle_reserva = $data['detalle_reserva'];
+            } else {
+                $mesa->detalle_reserva = null;
+            }
             $mesa->save();
 
             if ($request->wantsJson()) {
@@ -114,20 +159,33 @@ class MesasController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         // Buscar la mesa por su ID
         $mesa = Mesas::find($id);
 
         // Verificar si existe
         if (!$mesa) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'La mesa no fue encontrada.'], 404);
+            }
             return redirect()->route('mesas.index')->with('error', 'La mesa no fue encontrada.');
         }
 
         // Eliminar la mesa
-        $mesa->delete();
+        try {
+            $mesa->delete();
+        } catch (\Exception $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error al eliminar la mesa', 'error' => $e->getMessage()], 500);
+            }
+            return back()->with('error', 'Error al eliminar la mesa: ' . $e->getMessage());
+        }
 
-        // Redirigir con mensaje de éxito
-        return redirect()->route('mesas.index')->with('success', 'Mesa eliminada correctamente.');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Mesa eliminada correctamente.']);
+        }
+
+        return redirect()->route('mesas.index');
     }
 }

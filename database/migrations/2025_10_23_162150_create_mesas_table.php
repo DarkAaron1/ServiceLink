@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             $table->string('estado')->default('disponible');
+            $table->string('detalle_reserva')->nullable();
             $table->unsignedBigInteger('restaurante_id');
             $table->timestamps();
 
