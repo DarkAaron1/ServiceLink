@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('nombre')->unique();
             $table->string('descripcion')->nullable();
-            // $table->unsignedBigInteger('restaurante_id')->nullable()->after('id');
+            $table->unsignedBigInteger('restaurante_id')->nullable()->after('id');
             $table->timestamps();
 
-            // $table->foreign('restaurante_id')->references('id')->on('restaurantes')->onDelete('cascade');
+            $table->foreign('restaurante_id')->references('id')->on('restaurantes')->onDelete('cascade');
         });
     }
 
