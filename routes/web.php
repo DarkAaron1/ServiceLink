@@ -80,3 +80,5 @@ Route::post('restaurante/store', [RestauranteController::class, 'store'])->name(
 //Ruta para contraseñas
 Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, 'reestablecerContrasena'])->name('empleados.reset_password');
 
+//Ruta QR
+Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::class, 'generateQrCode'])->name('generate.qr');
