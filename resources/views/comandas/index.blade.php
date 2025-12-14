@@ -198,10 +198,6 @@
                             <div style="flex: 0 0 320px; min-width:280px;">
                                 <h3>Información Comanda</h3>
                                 <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                                    <label for="rut_empleado">Rut Empleado</label>
-                                    <input id="rut_empleado" name="rut_empleado" type="text" class="form-control"
-                                        placeholder="Ingrese rut del empleado" required />
-
                                     <label for="observaciones_global">Observaciones (comanda)</label>
                                     <textarea id="observaciones_global" name="observaciones_global" rows="3"
                                         class="form-control" placeholder="Observaciones generales"></textarea>

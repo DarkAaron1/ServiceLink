@@ -9,13 +9,15 @@ use App\Models\Mesas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
+use App\Models\Restaurante;
 
 class ComandaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index( request $request)
     {
         // Determine restaurant context similar to other controllers
         $restauranteId = null;
@@ -36,7 +38,31 @@ class ComandaController extends Controller
             $items = Items_Menu::where('estado', 'disponible')->get();
         }
 
-        return view('comandas.index', compact('mesas', 'items'));
+        //Datos de usuario para la vista
+        $rut = $request->session()->get('usuario_rut');
+        if (! $rut) {
+            return redirect()->route('login');
+        }
+
+        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
+        $usuario = Usuario::where('rut', $rut)->first();
+        if (! $usuario) {
+            $usuario = (object) [
+                'nombre' => $request->session()->get('usuario_nombre'),
+                'email' => $request->session()->get('usuario_email'),
+                'rut' => $request->session()->get('usuario_rut'),
+                'rol_id' => null,
+                'estado' => null,
+            ];
+        }
+
+        // Obtener nombre del rol si aplica
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
+
+        return view('comandas.index', compact('mesas', 'items'), compact('usuario', 'rolName'));
     }
 
     /**
@@ -54,7 +80,6 @@ class ComandaController extends Controller
     {
         $data = $request->validate([
             'mesa_id' => 'required|exists:mesas,id',
-            'rut_empleado' => 'required|string',
             'order_items' => 'required|json',
             'observaciones_global' => 'nullable|string',
         ]);
@@ -67,7 +92,7 @@ class ComandaController extends Controller
         DB::beginTransaction();
         try {
             $comanda = new Comanda();
-            $comanda->rut_empleado = $data['rut_empleado'];
+            $comanda->rut_empleado = $request->session()->get('usuario_rut');
             $comanda->mesa_id = $data['mesa_id'];
             $comanda->estado = 'abierta';
             $comanda->save();
