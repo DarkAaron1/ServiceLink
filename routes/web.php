@@ -15,7 +15,7 @@ use App\Http\Controllers\ComandaController;
 use App\Mail\MiPrimerEmail;
 use Illuminate\Support\Facades\Mail;
 
-Route::get('/index', [DashboardController::class, 'index'])->name('index');
+Route::get('/index', [DashboardController::class, 'index'])->name('demo.index');
 
 // Reemplazado: mostrar login mediante controlador
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -88,3 +88,6 @@ Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, '
 
 //Ruta QR
 Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::class, 'generateQrCode'])->name('generate.qr');
+
+//Ruta cocina
+Route::get('/cocina', [App\Http\Controllers\CocinaController::class, 'index'])->name('cocina.index');

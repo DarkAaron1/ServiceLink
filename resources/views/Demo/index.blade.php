@@ -27,66 +27,36 @@
             </div>
 
             <div class="sidebar">
-                <a href="{{ route('index') }}" class="active">
-                    <span class="material-icons-sharp">
-                        dashboard
-                    </span>
+                <a href="{{ route('demo.index') }}">
+                    <span class="material-icons-sharp">dashboard</span>
                     <h3>Dashboard</h3>
                 </a>
                 <a href="{{ route('empleados.index') }}">
-                    <span class="material-icons-sharp">
-                        person_outline
-                    </span>
+                    <span class="material-icons-sharp">person_outline</span>
                     <h3>Colaboradores</h3>
                 </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        receipt_long
-                    </span>
-                    <h3>Ventas</h3>
+                <a href="{{ route('comandas.index') }}">
+                    <span class="material-icons-sharp">receipt_long</span>
+                    <h3>Comandas</h3>
                 </a>
                 <a href="#">
-                    <span class="material-icons-sharp">
-                        insights
-                    </span>
+                    <span class="material-icons-sharp">insights</span>
                     <h3>Estadísticas</h3>
                 </a>
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        mail_outline
-                    </span>
-                    <h3>Comandas</h3>
-                    <span class="message-count">27</span>
+                <a href="{{ route('cocina.index') }}" class="active">
+                    <span class="material-icons-sharp">restaurant</span>
+                    <h3>Cocina</h3>
                 </a>
                 <a href="{{ route('items_menu.index') }}">
-                    <span class="material-icons-sharp">
-                        inventory
-                    </span>
+                    <span class="material-icons-sharp">inventory</span>
                     <h3>Menú</h3>
                 </a>
                 <a href="{{ route('mesas.index') }}">
-                    <span class="material-icons-sharp">
-                        table_restaurant
-                    </span>
+                    <span class="material-icons-sharp">table_restaurant</span>
                     <h3>Mesas</h3>
                 </a>
-                </a>
-                <!--<a href="#">
-                    <span class="material-icons-sharp">
-                        settings
-                    </span>
-                    <h3>Settings</h3>
-                </a>
                 <a href="#">
-                    <span class="material-icons-sharp">
-                        add
-                    </span>
-                    <h3>New Login</h3>
-                </a>-->
-                <a href="#">
-                    <span class="material-icons-sharp">
-                        logout
-                    </span>
+                    <span class="material-icons-sharp">logout</span>
                     <h3>Logout</h3>
                 </a>
             </div>

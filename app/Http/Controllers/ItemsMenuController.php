@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Items_Categoria;
 use App\Models\Restaurante;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Usuario;
 
 
 class ItemsMenuController extends Controller
@@ -14,7 +16,7 @@ class ItemsMenuController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index( request $request)
     {
         // Intenta obtener el restaurante desde sesión/autenticación para el admin.
         $restauranteId = $this->getContextRestauranteId();
@@ -27,8 +29,31 @@ class ItemsMenuController extends Controller
             $itemsMenu = Items_Menu::with('categoria')->get();
             $categorias = Items_Categoria::all();
         }
+        //Datos de usuario para la vista
+        $rut = $request->session()->get('usuario_rut');
+        if (! $rut) {
+            return redirect()->route('login');
+        }
 
-        return view('Items_Menu.index', compact('itemsMenu', 'categorias'));
+        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
+        $usuario = Usuario::where('rut', $rut)->first();
+        if (! $usuario) {
+            $usuario = (object) [
+                'nombre' => $request->session()->get('usuario_nombre'),
+                'email' => $request->session()->get('usuario_email'),
+                'rut' => $request->session()->get('usuario_rut'),
+                'rol_id' => null,
+                'estado' => null,
+            ];
+        }
+
+        // Obtener nombre del rol si aplica
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
+
+        return view('Items_Menu.index', compact('itemsMenu', 'categorias'), compact('usuario', 'rolName'));
     }
 
     /**
