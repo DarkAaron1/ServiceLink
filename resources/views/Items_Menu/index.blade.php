@@ -134,6 +134,19 @@
                             <span class="material-icons-sharp" style="font-size:1.1rem;">add</span>
                             Nuevo Item
                         </button>
+
+                        {{-- Botón para Mostrar QR de Carta --}}
+                        @php
+                            // Determine a restaurant id to use for generating the QR.
+                            // Try a passed-in $restaurante, otherwise try the first item's restaurante_id, else null.
+                            $restauranteId = $restaurante->id ?? ($itemsMenu->count() ? $itemsMenu->first()->restaurante_id : null);
+                        @endphp
+
+                        <button id="open-qr-modal" type="button" data-restaurante="{{ $restauranteId ?? '' }}" class="btn-primary button-Add"
+                            style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none; padding:0.5rem 1rem; background-color:#3b82f6; color:#fff; border-radius:8px; border:none;">
+                            <span class="material-icons-sharp" style="font-size:1.1rem;">qr_code</span>
+                            Ver QR Carta
+                        </button>
                     </div>
                 </div>
 
@@ -278,8 +291,28 @@
                 </div>
             </div>
 
-
-
+            {{-- Modal que muestra el QR --}}
+            <div id="qr-modal" class="mesa-modal" style="display:none;">
+                <div class="modal-content" style="max-width:400px; text-align:center;">
+                    <div class="modal-header">
+                        <span class="modal-icon material-icons-sharp">qr_code</span>
+                        <h2 style="margin:0; color: var(--primary-color);">QR de la Carta</h2>
+                    </div>
+                    <div style="padding:1rem 0;">
+                        <img id="qr-image" src="" alt="QR Carta" 
+                            style="width:200px; height:200px; justify-self:center;">
+                        <p id="qr-link-wrapper" style="margin-top:1rem; font-size:0.9rem; color:#475569;">
+                            <a id="qr-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+                            <button id="copy-qr-link" class="button-Add" style="justify-self:center; border:none; padding:4px 8px; border-radius:6px;">Copiar</button>
+                        </p>
+                        <p style="margin-top:0.5rem; font-size:0.85rem; color:#64748b;">Escanea o abre este enlace para acceder a la carta del menú.</p>
+                    </div>
+                    <div style="display:flex; justify-content:center; margin-top:1rem;">
+                        <button type="button" id="close-qr-modal" class="button-Add edit-btn"
+                            style="background:#3b82f6; color:#fff; border:none; padding:0.6rem 1rem; border-radius:6px;">Cerrar</button>
+                    </div>
+                </div>
+            </div>
 
         </main>
         <!-- End of Main Content -->
@@ -389,6 +422,76 @@
         const itemForm = document.getElementById('itemForm');
         const itemModalTitle = document.getElementById('itemModalTitle');
         const submitBtn = itemForm.querySelector('button[type="submit"]');
+        const qrModal = document.getElementById('qrModal');
+
+        // QR modal functionality
+        const openQrModalBtn = document.getElementById('open-qr-modal');
+        const closeQrModalBtn = document.getElementById('close-qr-modal');
+        const qrModalEl = document.getElementById('qr-modal');
+        const qrImageEl = document.getElementById('qr-image');
+        const qrLinkEl = document.getElementById('qr-link');
+        const copyQrBtn = document.getElementById('copy-qr-link');
+
+        if (closeQrModalBtn) {
+            closeQrModalBtn.addEventListener('click', function() {
+                if (qrModalEl) qrModalEl.style.display = 'none';
+            });
+        }
+
+        if (openQrModalBtn) {
+            openQrModalBtn.addEventListener('click', function() {
+                // Get the restaurante id from data attribute or fallback to first item
+                const restauranteId = this.dataset.restaurante || ({{ $itemsMenu->count() ? $itemsMenu->first()->restaurante_id : 'null' }});
+                if (!restauranteId) {
+                    alert('No hay restaurante configurado para generar la carta.');
+                    return;
+                }
+
+                // Open modal and show loading placeholder
+                if (qrModalEl) qrModalEl.style.display = 'flex';
+                qrImageEl.src = ''; // reset
+
+                fetch(`/qr/${restauranteId}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(async response => {
+                    if (!response.ok) {
+                        const text = await response.text().catch(() => null);
+                        throw new Error(text || 'Error al generar QR');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.qr_url) {
+                        throw new Error('No se recibió URL de QR del servidor');
+                    }
+                    qrImageEl.src = data.qr_url;
+                    qrLinkEl.href = data.menu_url;
+                    qrLinkEl.textContent = data.menu_url;
+                })
+                .catch(err => {
+                    console.error('Error generando QR:', err);
+                    alert('No se pudo generar el QR. Intente nuevamente más tarde.');
+                    if (qrModalEl) qrModalEl.style.display = 'none';
+                });
+            });
+        }
+
+        // Copy menu link
+        if (copyQrBtn) {
+            copyQrBtn.addEventListener('click', function() {
+                const link = qrLinkEl && qrLinkEl.href;
+                if (!link) return;
+                navigator.clipboard?.writeText(link).then(() => {
+                    alert('Enlace copiado al portapapeles');
+                }).catch(() => {
+                    prompt('Copiar enlace manualmente:', link);
+                });
+            });
+        }
 
         // Open modal on new item button click
         newItemBtn.addEventListener('click', function() {

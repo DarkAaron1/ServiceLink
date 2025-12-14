@@ -11,6 +11,7 @@ use App\Http\Controllers\LoginController; // agregado
 use App\Http\Controllers\DashboardController; // agregado
 use App\Http\Controllers\EmpleadoController; // <-- agregado
 use App\Http\Controllers\RestauranteController; // <-- agregado
+use App\Http\Controllers\ComandaController;
 use App\Mail\MiPrimerEmail;
 use Illuminate\Support\Facades\Mail;
 
@@ -48,6 +49,11 @@ Route::post('/mesas', [MesasController::class, 'store'])->name('mesas.store');
 Route::patch('/mesas/{id}', [MesasController::class, 'update'])->name('mesas.update');
 Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas.destroy');
 
+// Rutas para comandas
+Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.index');
+Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store');
+Route::get('/comandas/{comanda}', [ComandaController::class, 'show'])->name('comandas.show');
+
 // Rutas para items menú
 Route::get('/items_menus', [ItemsMenuController::class, 'index'])->name('items_menu.index');
 Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_menus.store');
@@ -80,3 +86,5 @@ Route::post('restaurante/store', [RestauranteController::class, 'store'])->name(
 //Ruta para contraseñas
 Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, 'reestablecerContrasena'])->name('empleados.reset_password');
 
+//Ruta QR
+Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::class, 'generateQrCode'])->name('generate.qr');

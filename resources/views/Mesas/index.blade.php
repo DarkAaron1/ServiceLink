@@ -42,9 +42,7 @@
                     </span>
                 </div>
             </div>
-
-            <div class="sidebar">
-                <a href="">
+            <div class="sidebar">   
                 <a href="{{ url('/index') }}">
                     <span class="material-icons-sharp">
                         dashboard

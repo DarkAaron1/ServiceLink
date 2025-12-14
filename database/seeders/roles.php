@@ -18,7 +18,6 @@ class roles extends Seeder
             ['nombre' => 'Admin', 'descripcion' => 'Administrador del sistema'],
             ['nombre' => 'Mesero', 'descripcion' => 'Mesero del restaurante'],
             ['nombre' => 'Cocinero', 'descripcion' => 'Cocinero del restaurante'],
-            ['nombre' => 'Recepcionista', 'descripcion' => 'Recepcionista del restaurante'],
         ]);
     }
 }
