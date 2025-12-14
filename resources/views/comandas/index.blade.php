@@ -42,7 +42,7 @@
                 </div>
             </div>
 
-            <div class="sidebar">   
+            <div class="sidebar">
                 <a href="{{ url('/index') }}">
                     <span class="material-icons-sharp">
                         dashboard
@@ -67,12 +67,11 @@
                     </span>
                     <h3>Estadísticas</h3>
                 </a>
-                <a href="#">
+                <a href="{{ route('comandas.index') }}" class="active">
                     <span class="material-icons-sharp">
                         mail_outline
                     </span>
                     <h3>Comandas</h3>
-                    <span class="message-count">27</span>
                 </a>
                 <a href="{{ route('items_menu.index') }}">
                     <span class="material-icons-sharp">
@@ -108,25 +107,35 @@
                         <p>Haz click en una mesa para abrir la creación de comanda.</p>
                     </div>
                     <div style="display:flex; gap:0.75rem; align-items:center;">
-                        <button id="refresh-mesas" class="btn">Refrescar</button>
+                        <button id="refresh-mesas" class="btn-primary button-Add">
+                            <span>Refrescar</span>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mesas-grid">
-                    @foreach($mesas as $mesa)
-                    <div class="card-mesa" data-mesa-id="{{ $mesa->id }}" role="button"
-                        aria-label="Mesa {{ $mesa->nombre}}">
-                        <div class="mesa-header">
-                            <h4>Mesa {{ $mesa->nombre }}</h4>
-                        </div>
-                        <div class="mesa-body">
-                            <p>Estado: {{ $mesa->estado ?? 'disponible' }}</p>
-                            @if ($mesa->estado == 'Reservada')
-                                <p>Detalle: {{ $mesa->detalle_reserva }}</p>
-                            @endif
-                        </div>
-                    </div>
-                    @endforeach
+                    @if (isset($mesas) && $mesas->count())
+                        @foreach ($mesas as $mesa)
+                            <div class="mesa-card card-mesa estado-{{ strtolower($mesa->estado) }}" data-mesa-id="{{ $mesa->id }}">
+                                <div class="icon">
+                                    <span class="material-icons-sharp">table_restaurant</span>
+                                </div>
+                                <h3>{{ $mesa->nombre }}</h3>
+                                <div class="estado-container">
+                                    <div class="estado-indicador">
+                                        {{ $mesa->estado }}
+                                    </div>
+                                </div>
+                                @if (!empty($mesa->detalle_reserva) && $mesa->estado === 'Reservada')
+                                    <p class="reservation-detail filtro_reserva"
+                                        style="font-size:0.8rem;  margin-top:0.4rem;">Reserva:
+                                        {{ $mesa->detalle_reserva }}</p>
+                                @endif
+                            </div>
+                        @endforeach
+                    @else
+                        <p>No hay mesas registradas.</p>
+                    @endif
                 </div>
             </div>
 
@@ -150,10 +159,13 @@
                                     <select id="select-item" class="form-control" style="flex: 1; padding: .5rem;">
                                         <option value="">-- Seleccione Item --</option>
                                         @foreach($items as $item)
-                                            <option value="{{ $item->id }}" data-price="{{ $item->precio }}">{{ $item->nombre }} - ${{ number_format($item->precio, 0, ',', '.') }}</option>
+                                            <option value="{{ $item->id }}" data-price="{{ $item->precio }}">
+                                                {{ $item->nombre }} - ${{ number_format($item->precio, 0, ',', '.') }}
+                                            </option>
                                         @endforeach
                                     </select>
-                                    <input id="item-cantidad" type="number" min="1" value="1" class="form-control" style="width:80px;" />
+                                    <input id="item-cantidad" type="number" min="1" value="1" class="form-control"
+                                        style="width:80px;" />
                                     <button type="button" id="add-item-btn" class="btn">Agregar</button>
                                 </div>
 
@@ -175,7 +187,8 @@
                                     </table>
                                 </div>
 
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.75rem;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.75rem;">
                                     <strong>Total:</strong>
                                     <strong id="order-total">$0</strong>
                                 </div>
@@ -186,11 +199,12 @@
                                 <h3>Información Comanda</h3>
                                 <div style="display:flex; flex-direction:column; gap:0.5rem;">
                                     <label for="rut_empleado">Rut Empleado</label>
-                                    <input id="rut_empleado" name="rut_empleado" type="text" class="form-control" placeholder="Ingrese rut del empleado" required />
+                                    <input id="rut_empleado" name="rut_empleado" type="text" class="form-control"
+                                        placeholder="Ingrese rut del empleado" required />
 
                                     <label for="observaciones_global">Observaciones (comanda)</label>
-                                    <textarea id="observaciones_global" name="observaciones_global" rows="3" class="form-control"
-                                        placeholder="Observaciones generales"></textarea>
+                                    <textarea id="observaciones_global" name="observaciones_global" rows="3"
+                                        class="form-control" placeholder="Observaciones generales"></textarea>
 
                                     <input type="hidden" name="order_items" id="order_items_input" />
 
@@ -226,11 +240,11 @@
                 </div>
 
                 <div class="profile">
-                        <div class="info">
-                            <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
-                            <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
-                        </div>
+                    <div class="info">
+                        <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
+                        <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
                     </div>
+                </div>
 
             </div>
             <!-- End of Nav -->
@@ -239,7 +253,7 @@
                 <div class="logo">
                     <img src="{{  asset('favicon.ico') }}">
                     <h2>{{ $usuario->nombre ?? 'Usuario' }}</h2>
-                    <p>{{ $rolName?? 'Rol' }}</p>
+                    <p>{{ $rolName ?? 'Rol' }}</p>
                 </div>
             </div>
         </div>
@@ -247,7 +261,7 @@
     </div>
 
     <script>
-        (function() {
+        (function () {
             const mesaCards = document.querySelectorAll('.card-mesa');
             const modal = document.getElementById('create-comanda-modal');
             const closeModal = document.getElementById('close-create-comanda');
