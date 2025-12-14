@@ -32,7 +32,6 @@ class UsuarioController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:usuarios,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'fecha_nacimiento' => ['required', 'date'],
-            'rol_id' => ['required', 'integer', 'exists:roles,id'],
             'estado' => ['sometimes', 'in:activo,inactivo'],
         ]);
 
@@ -45,7 +44,7 @@ class UsuarioController extends Controller
                 'email' => $data['email'],
                 'password' => $data['password'], // mutator se encargará de hashear si procede
                 'fecha_nacimiento' => $data['fecha_nacimiento'],
-                'rol_id' => $data['rol_id'],
+                'rol_id' => '1',
                 'estado' => $data['estado'] ?? 'inactivo',
             ]);
         } catch (Exception $e) {
