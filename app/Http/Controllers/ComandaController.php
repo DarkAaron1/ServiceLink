@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
 use App\Models\Restaurante;
+use App\Events\NuevoPedidoCreado;
 
 class ComandaController extends Controller
 {
@@ -76,64 +77,92 @@ class ComandaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+private function normalizarRut(?string $rut): ?string
+    {
+        if (empty($rut)) return null;
+        $rut = str_replace(['.', ' '], '', $rut);
+        return strtoupper($rut);
+    }
+
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'mesa_id' => 'required|exists:mesas,id',
+        // 1. Depuración y Validación
+        \Log::info('Inicio ComandaController@store', $request->all());
+
+        $datosValidados = $request->validate([
+            'mesa_id' => 'required|exists:mesas,id', // 'mesas' es la tabla en BD
             'order_items' => 'required|json',
             'observaciones_global' => 'nullable|string',
         ]);
-
-        $orderItems = json_decode($request->input('order_items'), true);
+        
+        $orderItems = json_decode($datosValidados['order_items'], true);
+        
         if (!is_array($orderItems) || empty($orderItems)) {
-            return back()->with('error', 'Los items de la comanda no son válidos.');
+            return back()->with('error', 'Debe seleccionar al menos un ítem válido.');
         }
 
         DB::beginTransaction();
         try {
-            $comanda = new Comanda();
-            $comanda->rut_empleado = $request->session()->get('usuario_rut');
-            $comanda->mesa_id = $data['mesa_id'];
-            $comanda->estado = 'abierta';
-            $comanda->save();
-
-            // marcar mesa como ocupada
-            $mesa = Mesas::find($data['mesa_id']);
-            if ($mesa) {
-                $mesa->estado = 'Ocupada';
-                $mesa->save();
+            // 2. Normalizar RUT (Solución error 1452)
+            $rutSesion = $request->session()->get('usuario_rut');
+            $rutEmpleado = $this->normalizarRut($rutSesion);
+            
+            if (empty($rutEmpleado)) {
+                throw new \Exception('No se pudo validar el RUT del empleado en sesión.');
             }
+            
+            // 3. Crear Comanda
+            $comanda = Comanda::create([
+                'rut_empleado' => $rutEmpleado,
+                'mesa_id' => $datosValidados['mesa_id'],
+                'estado_cuenta' => 'abierta', 
+            ]);
 
+            // 4. Actualizar Mesa (Usando el modelo 'Mesas')
+            $mesa = Mesas::findOrFail($datosValidados['mesa_id']); 
+            $mesa->estado = 'Ocupada';
+            $mesa->save();
+
+            // 5. Crear Pedidos
             foreach ($orderItems as $it) {
-                $itemId = $it['item_id'] ?? null;
+                // Usando el modelo 'Items_Menu'
+                $item = Items_Menu::findOrFail($it['item_id'] ?? null);
+
                 $cantidad = isset($it['cantidad']) ? max(1, intval($it['cantidad'])) : 1;
-                $valor = $it['valor_item_ATM'] ?? (Items_Menu::find($itemId)->precio ?? 0);
+                $precio = $it['valor_item_ATM'] ?? $item->precio; 
                 $observaciones = $it['observaciones'] ?? null;
 
                 for ($i = 0; $i < $cantidad; $i++) {
-                    $pedido = new Pedido();
-                    $pedido->item_id = $itemId;
-                    $pedido->comanda_id = $comanda->id;
-                    $pedido->observaciones = $observaciones;
-                    $pedido->valor_item_ATM = $valor;
-                    $pedido->estado = 'pendiente';
-                    $pedido->save();
+                    $pedido = $comanda->pedidos()->create([
+                        'item_id' => $item->id,
+                        'item_nombre' => $item->nombre, 
+                        'valor_item_ATM' => $precio, 
+                        'observaciones' => $observaciones,
+                        'estado_preparacion' => 'pendiente', 
+                    ]);
+                    
+                    // 6. Tiempo Real
+                    NuevoPedidoCreado::dispatch($pedido); 
                 }
             }
 
             DB::commit();
+            \Log::info('Comanda creada ID: ' . $comanda->id);
 
             if ($request->wantsJson()) {
-                return response()->json(['success' => true, 'message' => 'Comanda creada.', 'comanda' => $comanda]);
+                return response()->json(['success' => true, 'comanda' => $comanda->load('pedidos')], 201);
             }
 
             return redirect()->route('comandas.index')->with('success', 'Comanda creada correctamente');
-        } catch (\Exception $e) {
+
+        } catch (\Throwable $e) {
             DB::rollBack();
+            \Log::error('Error FATAL en Store:', ['error' => $e->getMessage()]);
+            
             if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Error al crear la comanda', 'error' => $e->getMessage()], 500);
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
             }
-            return back()->with('error', 'Error al crear la comanda: ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 
