@@ -283,9 +283,9 @@
         });
 
         // Auto-refresh cada 30 segundos
-        setInterval(() => {
-            location.reload();
-        }, 30000);
+        //setInterval(() => {
+        //    location.reload();
+        //}, 30000);
     </script>
 
 </body>
