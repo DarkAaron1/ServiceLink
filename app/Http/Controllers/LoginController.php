@@ -34,8 +34,8 @@ class LoginController extends Controller
         $request->session()->put('usuario_nombre', $usuario->nombre);
         $request->session()->put('usuario_email', $usuario->email);
 
-        // redirigir a la vista Demo.index mediante la ruta nombrada 'index'
-        return redirect()->route('index');
+        // redirigir a la vista Demo.index mediante la ruta nombrada 'demo.index'
+        return redirect()->route('demo.index');
     }
 
     // Cerrar sesión
