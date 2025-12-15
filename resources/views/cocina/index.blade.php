@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('style-tables.css') }}">
+    @livewireStyles
     <title>ServiceLink - Cocina</title>
 </head>
 
@@ -101,93 +102,9 @@
                     </select>
                 </div>
 
-                <!-- Grid de órdenes -->
-                <div id="orders-grid" class="menu-grid">
-                    @if (isset($comandas) && $comandas->count())
-                        @foreach ($comandas as $comanda)
-                            <div class="order-card estado-{{ strtolower($comanda->estado) }}" 
-                                data-order-id="{{ $comanda->id }}" data-estado="{{ $comanda->estado }}">
-                                <div class="card-content">
-                                    <div class="card-header">
-                                        <h3>Mesa {{ $comanda->mesa->nombre ?? 'N/A' }}</h3>
-                                        <span class="time-badge">{{ $comanda->created_at->diffForHumans() }}</span>
-                                    </div>
-
-                                    <div class="order-items" style="margin:1rem 0; max-height:200px; overflow-y:auto;">
-                                        @forelse ($comanda->detalles as $detalle)
-                                            <div class="order-item"
-                                                style="padding:0.75rem; border-left:3px solid #3b82f6; margin-bottom:0.5rem; background:#f8fafc;">
-                                                <div style="display:flex; justify-content:space-between; align-items:start;">
-                                                    <div>
-                                                        <strong>{{ $detalle->item->nombre ?? 'Item' }}</strong>
-                                                        <p style="font-size:0.9rem; color:#64748b; margin:0.25rem 0 0 0;">
-                                                            Cantidad: {{ $detalle->cantidad }}
-                                                        </p>
-                                                        @if ($detalle->observaciones)
-                                                            <p style="font-size:0.85rem; color:#f59e0b; margin:0.25rem 0 0 0; font-weight:500;">
-                                                                📝 {{ $detalle->observaciones }}
-                                                            </p>
-                                                        @endif
-                                                    </div>
-                                                    <span class="item-status"
-                                                        style="padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; background:#e2e8f0;">
-                                                        {{ $detalle->estado ?? 'pendiente' }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <p style="color:#94a3b8;">Sin detalles</p>
-                                        @endforelse
-                                    </div>
-
-                                    @if ($comanda->observaciones_global)
-                                        <div style="background:#fef3c7; padding:0.75rem; border-radius:6px; margin:0.75rem 0; border-left:3px solid #f59e0b;">
-                                            <p style="font-size:0.9rem; margin:0; color:#92400e;">
-                                                <strong>Nota:</strong> {{ $comanda->observaciones_global }}
-                                            </p>
-                                        </div>
-                                    @endif
-
-                                    <div class="card-footer"
-                                        style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
-                                        <span class="status estado-{{ strtolower($comanda->estado) }}"
-                                            style="padding:0.4rem 0.8rem; border-radius:6px;">
-                                            {{ ucfirst($comanda->estado) }}
-                                        </span>
-                                    </div>
-
-                                    <div class="card-actions" style="margin-top:1rem; display:flex; gap:0.5rem;">
-                                        @if ($comanda->estado !== 'en_preparacion')
-                                            <button class="btn-action" onclick="updateOrderStatus({{ $comanda->id }}, 'en_preparacion')"
-                                                style="flex:1; padding:0.6rem; border:none; border-radius:6px; background:#3b82f6; color:#fff; cursor:pointer;">
-                                                <span class="material-icons-sharp" style="font-size:1rem;">schedule</span>
-                                                En Preparación
-                                            </button>
-                                        @endif
-
-                                        @if ($comanda->estado === 'en_preparacion')
-                                            <button class="btn-action" onclick="updateOrderStatus({{ $comanda->id }}, 'listo')"
-                                                style="flex:1; padding:0.6rem; border:none; border-radius:6px; background:#10b981; color:#fff; cursor:pointer;">
-                                                <span class="material-icons-sharp" style="font-size:1rem;">check_circle</span>
-                                                Marcar Listo
-                                            </button>
-                                        @endif
-
-                                        <button class="btn-action" onclick="viewOrderDetails({{ $comanda->id }})"
-                                            style="flex:1; padding:0.6rem; border:none; border-radius:6px; background:#8b5cf6; color:#fff; cursor:pointer;">
-                                            <span class="material-icons-sharp" style="font-size:1rem;">visibility</span>
-                                            Detalles
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div style="grid-column:1/-1; text-align:center; padding:2rem;">
-                            <span class="material-icons-sharp" style="font-size:3rem; color:#cbd5e1;">inbox</span>
-                            <p style="color:#64748b; margin-top:1rem;">No hay órdenes pendientes</p>
-                        </div>
-                    @endif
+                <!-- Grid de órdenes (Livewire) -->
+                <div>
+                    @livewire('cocina-orders')
                 </div>
             </div>
 
@@ -246,7 +163,9 @@
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-                    location.reload();
+                    // notify Livewire to refresh list
+                    if (window.livewire) window.livewire.emit('refreshOrders');
+                    else location.reload();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -277,17 +196,134 @@
             });
         });
 
-        // Refrescar órdenes
+        // Refrescar órdenes (Livewire)
         document.getElementById('refresh-orders').addEventListener('click', function() {
-            location.reload();
+            if (window.livewire) {
+                window.livewire.emit('refreshOrders');
+            } else {
+                location.reload();
+            }
         });
 
-        // Auto-refresh cada 30 segundos
-        //setInterval(() => {
-        //    location.reload();
-        //}, 30000);
+
     </script>
 
+    <script>
+        // Conectar Echo (Reverb) una vez Livewire esté listo
+        function initCocinaRealtimeListener() {
+            try {
+                if (!window.Echo) {
+                    console.warn('Echo no disponible en esta página');
+                    return;
+                }
+
+                window.Echo.channel('cocina').listen('.NuevoPedidoCreado', function(e) {
+                    if (window.livewire && typeof window.livewire.emit === 'function') {
+                        window.livewire.emit('refreshOrders');
+                    } else {
+                        console.log('Nuevo pedido recibido, recargando página');
+                        location.reload();
+                    }
+                });
+            } catch (err) {
+                console.error('Error al conectar con Echo:', err);
+            }
+        }
+
+        document.addEventListener('livewire:initialized', initCocinaRealtimeListener);
+        document.addEventListener('livewire:load', initCocinaRealtimeListener);
+        // Fallback: si Livewire ya está cargado
+        if (window.livewire) initCocinaRealtimeListener();
+    </script>
+
+    <script>
+        // Mostrar tiempo exacto transcurrido desde la creación de la comanda
+        // Formato: `MM:SS`, `HH:MM:SS` o `Nd HH:MM:SS` si es necesario.
+        function pad(n) { return n.toString().padStart(2, '0'); }
+
+        function elapsedTimeFrom(isoString) {
+            const then = new Date(isoString).getTime();
+            let diff = Math.max(0, Math.floor((Date.now() - then) / 1000));
+
+            const days = Math.floor(diff / 86400);
+            diff %= 86400;
+            const hours = Math.floor(diff / 3600);
+            diff %= 3600;
+            const minutes = Math.floor(diff / 60);
+            const seconds = diff % 60;
+
+            const hhmmss = (hours > 0)
+                ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+                : `${pad(minutes)}:${pad(seconds)}`;
+
+            return days > 0 ? `${days}d ${hhmmss}` : hhmmss;
+        }
+
+        function updateElapsedBadges() {
+            document.querySelectorAll('.time-badge').forEach(el => {
+                const iso = el.getAttribute('data-created-at');
+                if (!iso) return;
+                el.textContent = elapsedTimeFrom(iso);
+                // Mostrar fecha/hora exacta al pasar el ratón
+                if (!el.title) el.title = new Date(iso).toLocaleString();
+            });
+        }
+
+        // Actualizar inmediatamente y cada segundo para mostrar segundos exactos
+        updateElapsedBadges();
+        setInterval(updateElapsedBadges, 1000);
+
+        // Recalcular después de cada render de Livewire
+        document.addEventListener('livewire:update', updateElapsedBadges);
+        document.addEventListener('livewire:load', updateElapsedBadges);
+    </script>
+
+    <script>
+        // Polling periódica para detectar nuevas órdenes y refrescar la vista
+        let cocinaLastSeenIso = null;
+
+        function initCocinaLastSeen() {
+            const badges = Array.from(document.querySelectorAll('.time-badge'))
+                .map(el => el.getAttribute('data-created-at'))
+                .filter(Boolean);
+            cocinaLastSeenIso = badges.length ? badges.sort().pop() : null;
+        }
+
+        async function checkForNewOrders() {
+            try {
+                const res = await fetch('/cocina/ordenes/latest', { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.latest_created_at && (!cocinaLastSeenIso || new Date(data.latest_created_at) > new Date(cocinaLastSeenIso))) {
+                    cocinaLastSeenIso = data.latest_created_at;
+                    console.log('Nueva orden detectada, refrescando lista de cocina');
+                    if (window.livewire && typeof window.livewire.emit === 'function') {
+                        window.livewire.emit('refreshOrders');
+                    } else {
+                        location.reload();
+                    }
+                }
+            } catch (err) {
+                console.warn('Error comprobando nuevas órdenes:', err);
+            }
+        }
+
+        // Inicializar y arrancar polling
+        initCocinaLastSeen();
+        // Re-check on focus to be more responsive
+        window.addEventListener('focus', checkForNewOrders);
+        // Poll cada 15 segundos
+        setInterval(checkForNewOrders, 15 * 1000);
+
+        // Actualizar el punto de referencia cuando Livewire renderice (evita refrescos duplicados)
+        document.addEventListener('livewire:update', initCocinaLastSeen);
+        document.addEventListener('livewire:load', initCocinaLastSeen);
+
+        // Hacer una comprobación inicial
+        checkForNewOrders();
+    </script>
+
+    @livewireScripts
 </body>
 
 </html>

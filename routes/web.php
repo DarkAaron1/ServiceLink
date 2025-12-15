@@ -91,3 +91,5 @@ Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::c
 
 //Ruta cocina
 Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index');
+// Endpoint para comprobar si hay nuevas órdenes (usa en polling cliente)
+Route::get('/cocina/ordenes/latest', [App\Http\Controllers\PedidoController::class, 'latestOrder'])->name('cocina.ordenes.latest');

@@ -149,6 +149,9 @@ private function normalizarRut(?string $rut): ?string
             DB::commit();
             \Log::info('Comanda creada ID: ' . $comanda->id);
 
+            // Información de diagnóstico: comprobar si broadcasting está activo
+            \Log::info('Broadcast driver configured: ' . config('broadcasting.default'));
+
             if ($request->wantsJson()) {
                 return response()->json(['success' => true, 'comanda' => $comanda->load('pedidos')], 201);
             }

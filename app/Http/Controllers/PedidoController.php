@@ -65,6 +65,20 @@ class PedidoController extends Controller
     }
 
     /**
+     * Endpoint to return latest comanda info for client-side polling.
+     */
+    public function latestOrder()
+    {
+        $latest = \App\Models\Comanda::orderBy('created_at', 'desc')->select('id', 'created_at')->first();
+
+        return response()->json([
+            'latest_id' => $latest ? $latest->id : null,
+            'latest_created_at' => $latest ? $latest->created_at->toIso8601String() : null,
+            'count' => \App\Models\Comanda::count(),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
