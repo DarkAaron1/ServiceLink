@@ -90,4 +90,4 @@ Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, '
 Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::class, 'generateQrCode'])->name('generate.qr');
 
 //Ruta cocina
-Route::get('/cocina', [App\Http\Controllers\CocinaController::class, 'index'])->name('cocina.index');
+Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index');
