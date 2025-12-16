@@ -179,21 +179,7 @@
 						<input id="fecha_nacimiento" type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
 					</label>
 					@error('fecha_nacimiento') <div class="error">{{ $message }}</div> @enderror
-
-					<!-- Rol -->
-					<label class="field" for="rol_id" style="margin-top:.6rem;">
-						<span class="material-icons-sharp">groups</span>
-						<select id="rol_id" name="rol_id" style="border:none;background:transparent;width:100%;padding:.45rem 0;">
-							<option value="">Seleccione un rol</option>
-							@isset($roles)
-								@foreach($roles as $rol)
-									<option value="{{ $rol->id }}" {{ old('rol_id') == $rol->id ? 'selected' : '' }}>{{ $rol->nombre ?? 'Rol '.$rol->id }}</option>
-								@endforeach
-							@endisset
-						</select>
-					</label>
-					@error('rol_id') <div class="error">{{ $message }}</div> @enderror
- 
+					 
 					<button type="submit" class="btn-primary" style="margin-top:1rem;">Crear Cuenta</button>
  
 					<div style="margin-top:1rem;display:flex;justify-content:center;gap:.5rem;align-items:center;">

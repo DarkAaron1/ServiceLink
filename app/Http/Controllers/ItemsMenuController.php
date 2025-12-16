@@ -31,6 +31,29 @@ class ItemsMenuController extends Controller
             $itemsMenu = Items_Menu::with('categoria')->get();
             $categorias = Items_Categoria::all();
         }
+        //Datos de usuario para la vista
+        $rut = $request->session()->get('usuario_rut');
+        if (! $rut) {
+            return redirect()->route('login');
+        }
+
+        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
+        $usuario = Usuario::where('rut', $rut)->first();
+        if (! $usuario) {
+            $usuario = (object) [
+                'nombre' => $request->session()->get('usuario_nombre'),
+                'email' => $request->session()->get('usuario_email'),
+                'rut' => $request->session()->get('usuario_rut'),
+                'rol_id' => null,
+                'estado' => null,
+            ];
+        }
+
+        // Obtener nombre del rol si aplica
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
 
         // añadir imagen_url para consumo en la vista
         $itemsMenu->each(function ($it) {

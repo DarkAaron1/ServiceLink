@@ -34,8 +34,7 @@ class ItemsCategoriaController extends Controller
             $categorias = Items_Categoria::all();
         }
 
-
-          // Si no hay sesión, redirigir al login
+        // Si no hay sesión, redirigir al login
         $rut = $request->session()->get('usuario_rut');
         if (! $rut) {
             return redirect()->route('login');
@@ -57,9 +56,8 @@ class ItemsCategoriaController extends Controller
         if (! empty($usuario->rol_id)) {
             $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
         }
-
-
-        return view('categorias.index', compact('categorias','categorias','usuario', 'rolName'));
+        
+        return view('categorias.index', compact('categorias'), compact('usuario', 'rolName'));
     }
 
     /**

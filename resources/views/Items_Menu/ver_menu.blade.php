@@ -239,8 +239,7 @@
                     <img src="{{ $restaurante->logo ?? asset('favicon.ico') }}" alt="Logo Restaurante">
                     <div>
                         <h1>Carta pública <small>| {{ $restaurante->nombre ?? 'Restaurante' }}</small></h1>
-                        <p style="margin:0; font-size:0.88rem; color:var(--color-dark-variant)">Solo mostramos las
-                            categorías e ítems seleccionados por el administrador.</p>
+                        <p style="margin:0; font-size:0.88rem; color:var(--color-dark-variant)">Nuestra selección de platos para ofrecer.</p>
                     </div>
                 </div>
 
