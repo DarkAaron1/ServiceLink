@@ -67,32 +67,7 @@
         <!-- End of Main Content -->
 
         <!-- Right Section -->
-        <div class="right-section">
-            <div class="nav">
-                <button id="menu-btn">
-                    <span class="material-icons-sharp">menu</span>
-                </button>
-                <div class="dark-mode">
-                    <span class="material-icons-sharp active">light_mode</span>
-                    <span class="material-icons-sharp">dark_mode</span>
-                </div>
-
-                <div class="profile">
-                    <div class="info">
-                        <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
-                        <small class="text-muted">{{ $rolName ?? 'Cocinero' }}</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="user-profile">
-                <div class="logo">
-                    <img src="{{ asset('favicon.ico') }}">
-                    <h2>{{ $usuario->nombre ?? 'Usuario' }}</h2>
-                    <p>{{ $rolName ?? 'Rol' }}</p>
-                </div>
-            </div>
-        </div>
+        @include('partials.right-section')
 
     </div>
 
