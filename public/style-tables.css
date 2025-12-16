@@ -19,7 +19,8 @@
     animation: modalFadeIn 0.3s;
 }
 /* Botón cerrar */
-#close-modal {
+#close-modal,
+#close-edit-modal {
     position: absolute;
     right: 1rem;
     top: 1rem;
@@ -31,11 +32,13 @@
     transition: color 0.2s;
 }
 
-#close-modal:hover {
+#close-modal:hover,
+#close-edit-modal:hover {
     color: #1976d2;
 }
 
-.modal-header {
+.modal-header,
+.modal-header-eliminar {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -90,13 +93,14 @@
 }
 
 .input-group input,
-.input-group select {
+.input-group select,
+.input-group textarea {
     padding: 0.65rem 0.9rem;
-    border: 1.5px solid #e0e0e0;
     border-radius: 6px;
     font-size: 1rem;
     background: #fafbfc;
     outline: none;
+    border: 1px solid #e2e8f0;
     transition: border-color 0.2s;
 }
 
@@ -127,7 +131,17 @@
     transition: background 0.2s, color 0.2s;
 }
 
+#reset-password-btn {
+    position: absolute;
+    left: 1.25rem;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #bdbdbd;
+    color: #333;
+}
+
 #cancel-modal,
+#close-modal-btn,
 #cancel-edit-modal {
     border: 1.5px solid #bdbdbd;
     background: #fff;
@@ -135,8 +149,10 @@
 }
 
 #cancel-modal:hover,
+#close-modal-btn:hover,
+#reset-password-btn:hover,
 #cancel-edit-mesa:hover {
-    background: #f5f5f5;
+    background: #e3e2e2;
 }
 
 .form-actions button[type="submit"] {
@@ -191,15 +207,42 @@
     box-shadow: 0 6px 18px rgba(11, 116, 222, 0.14);
 }
 
+.button-volver {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 8px;
+    background: #e2e8f0;
+    color: #475569;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.button-volver:hover {
+    background: #cbd5e1;
+    color: #1e293b;
+    transform: translateX(-3px);
+}
+
+.button-volver span {
+    font-size: 1.2rem;
+}
+
 /* 
-TARJETAS DE MESAS 
+    TARJETAS DE MESAS 
 */
 
 .mesas-grid {
     display: grid;
     grid-template-columns: repeat(4, 150px);
-    gap: 0.8rem;
-    margin-top: 2rem;
+    gap: 1.5rem;
+    margin-top: 1rem;
     padding: 0;
     justify-content: center;
 }
@@ -394,18 +437,23 @@ TARJETAS DE MESAS
     }
 }
 
-/* Estilos para tarjetas de colaboradores */
+/*
+     Estilos para tarjetas de colaboradores 
+*/
 .colaborador-card {
-    width: 200px;
-    height: 320px;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--color-white);
+    border-radius: var(--border-radius-2);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    background: #fff;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-width: 0;
+    overflow: hidden;
+    width: auto;
+    height: auto;
 }
 
 .colaborador-card:hover {
@@ -468,36 +516,62 @@ TARJETAS DE MESAS
     margin-top: 1rem;
     justify-content: center;
 }
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-    .mesas-grid {
-        grid-template-columns: repeat(1, 150px);
-        gap: 0.5rem;
-    }
-
-    .mesa-card {
-        padding: 1.2rem;
-    }
-
-    .mesa-card .icon {
-        width: 44px;
-        height: 44px;
-    }
-
-    .mesa-card .icon span {
-        font-size: 24px;
-    }
-
-    .mesa-card h3 {
-        font-size: 1rem;
-    }
+.form-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: auto;
+}
+/* 
+   MODAL DE CONFIRMACIÓN DE ELIMINACIÓN
+*/
+#delete-confirm-modal {
+    position: fixed;
+    inset: 0;
+    display: none; /* oculto por defecto */
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9999;
+    padding: 1rem;
+    box-sizing: border-box;
 }
 
+/* mostrar centro con flex */
+#delete-confirm-modal.show {
+    display: flex;
+}
+
+/* contenido del modal */
+.modal-content-eliminar {
+    background: #fff;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    width: 420px;
+    max-width: 95%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    animation: modalFadeIn 0.2s ease;
+    box-sizing: border-box;
+}
+
+/* opcional: bloquear scroll del body cuando está abierto */
+body.modal-open {
+    overflow: hidden;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 /* 
    TARJETAS DE MENÚ 
 */
-
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -512,44 +586,133 @@ TARJETAS DE MESAS
     box-shadow: var(--box-shadow);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .menu-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--box-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.12));
 }
 
-.card-content {
+.menu-card .card-row {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
+    align-items: center;
 }
 
-/* Encabezado con nombre y precio */
+/* Thumbnail block */
+.menu-card .thumb {
+    flex: 0 0 120px;
+    max-width: 120px;
+    width: 120px;
+    height: 96px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #f3f4f6;
+    display: block;
+}
+
+.menu-card .thumb img,
+.menu-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Content area grows */
+.menu-card .card-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Header and price */
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    width: 100%;
 }
-
 .card-header h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--color-dark);
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
     margin: 0;
 }
-
 .price {
-    font-size: 1.2rem;
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
     font-weight: 700;
     color: var(--color-primary);
 }
 
+/* Description */
 .description {
     color: var(--color-dark-variant);
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.4;
     margin: 0;
+}
+
+/* Card actions */
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--color-light);
+    padding-top: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Mobile adjustments: stack thumb above content, single column grid */
+@media (max-width: 640px) {
+    .menu-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    .menu-card .card-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .menu-card .thumb {
+        width: 100%;
+        max-width: 100%;
+        height: 160px;
+    }
+    .card-header {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .card-header h3 {
+        font-size: 1.05rem;
+    }
+    .price {
+        font-size: 1rem;
+    }
+    .description {
+        font-size: 0.95rem;
+    }
+    .card-actions {
+        justify-content: space-between;
+    }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+    .menu-card .thumb {
+        height: 140px;
+    }
+    .card-header h3 {
+        font-size: 1rem;
+    }
+    .price {
+        font-size: 0.95rem;
+    }
+}
+
+/* Accessibility / touch targets */
+.card-actions button,
+.menu-card .thumb {
+    touch-action: manipulation;
 }
 
 /* Footer con categoría y disponibilidad */
@@ -638,12 +801,16 @@ TARJETAS DE MESAS
     color: #3a3838;
 }
 
-/* Modo oscuro */
+/* 
+    Modo oscuro Menú 
+*/
 .dark-mode-variables .filtro_cat {
     color: var(--color-primary);
 }
 
-.dark-mode-variables .menu-card {
+.dark-mode-variables .menu-card,
+.dark-mode-variables .colaborador-card,
+.dark-mode-variables .mesa-card {
     border: 1px solid var(--color-dark-variant);
 }
 
@@ -672,24 +839,11 @@ TARJETAS DE MESAS
 }
 
 /*
-  MODO OSCURO - MESAS
+  MODO OSCURO - MESAS - COLABORADORES
   */
 
-.dark-mode-variables .mesa-card {
-    background: #202528;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    border-radius: 10px;
-    color: #e6eef8;
-    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.6);
-}
-
-.dark-mode-variables .mesa-card:hover {
-    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.72);
-    border-color: rgba(255, 255, 255, 0.06);
-    transform: translateY(-2px);
-}
-
-.dark-mode-variables .mesa-card h3 {
+.dark-mode-variables .mesa-card h3,
+.dark-mode-variables .colaborador-card h3 {
     color: #e6eef8;
 }
 
@@ -739,19 +893,22 @@ TARJETAS DE MESAS
     background: rgba(59, 130, 246, 0.12);
 }
 
-.dark-mode-variables .estado-indicador {
+.dark-mode-variables .estado-indicador,
+.dark-mode-variables .colaborador-estado {
     background: rgba(255, 255, 255, 0.02);
     color: #cbd5e1;
     border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-.dark-mode-variables .estado-disponible .estado-indicador {
+.dark-mode-variables .estado-disponible .estado-indicadorm,
+.dark-mode-variables .colaborador-estado.activo {
     background: rgba(16, 185, 129, 0.12);
     color: #34d399;
     border-color: rgba(52, 211, 153, 0.06);
 }
 
-.dark-mode-variables .estado-ocupada .estado-indicador {
+.dark-mode-variables .estado-ocupada .estado-indicador,
+.dark-mode-variables .colaborador-estado.inactivo {
     background: rgba(253, 186, 116, 0.09);
     color: #f59e0b;
     border-color: rgba(245, 158, 11, 0.06);
@@ -787,7 +944,8 @@ TARJETAS DE MESAS
     color: #ff9fc7;
 }
 
-.dark-mode-variables .modal-content {
+.dark-mode-variables .modal-content,
+.dark-mode-variables .modal-content-eliminar {
     background: #202528;
     color: #e6eef8;
 }
@@ -795,6 +953,9 @@ TARJETAS DE MESAS
     color: #e6eef8c9;
 }
 .dark-mode-variables .input-group input,
+.dark-mode-variables .form-group input,
+.dark-mode-variables .form-group select,
+.dark-mode-variables .form-group textarea,
 .dark-mode-variables .input-group select {
     background: #202528;
     color: #e6eef8;
@@ -802,4 +963,298 @@ TARJETAS DE MESAS
 }
 .dark-mode-variables .filtro_reserva {
     color: var(--color-primary);
+}
+
+.dark-mode-variables .button-volver {
+    background: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+}
+
+.dark-mode-variables .button-volver:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #e6eef8;
+}
+
+/* 
+   MEDIA QUERIES RESPONSIVAS*/
+
+/* Tablets y pantallas medianas (641px - 1024px) */
+@media (max-width: 1024px) {
+    .modal-content {
+        width: 95%;
+        max-width: 600px;
+        padding: 1.5rem 2rem 3.5rem;
+    }
+
+    #reset-password-btn {
+        position: static;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+        width: 100%;
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .form-actions button {
+        flex: 1;
+        min-width: 100px;
+    }
+}
+
+/* Celulares (máximo 640px) */
+@media (max-width: 640px) {
+    .modal-content {
+        width: 90%;
+        max-width: 100%;
+        padding: 1.2rem 1.5rem 3rem;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    #reset-password-btn {
+        position: static;
+        width: 100%;
+        padding: 0.55rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .modal-header h2 {
+        font-size: 1.15rem;
+    }
+
+    .modal-icon {
+        font-size: 1.8rem;
+        padding: 0.3rem;
+    }
+
+    .input-group {
+        gap: 0.2rem;
+    }
+
+    .input-group label {
+        font-size: 0.9rem;
+    }
+
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+        padding: 0.55rem 0.8rem;
+        font-size: 1rem;
+        height: 38px;
+    }
+
+    .form-grid {
+        gap: 0.8rem !important;
+    }
+
+    .form-column {
+        gap: 0.8rem !important;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .form-actions button {
+        width: 100%;
+        padding: 0.55rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .error {
+        font-size: 0.8rem;
+    }
+
+    /* Oculta labels para ahorrar espacio en muy pequeños */
+    .modal-close {
+        font-size: 1.3rem;
+    }
+}
+
+/* Celulares muy pequeños (máximo 380px) */
+@media (max-width: 380px) {
+    .modal-content {
+        padding: 1rem 1.2rem 2.5rem;
+    }
+
+    .modal-header h2 {
+        font-size: 1rem;
+    }
+
+    .modal-header {
+        margin-bottom: 0.8rem;
+    }
+
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+        padding: 0.5rem 0.7rem;
+        font-size: 0.95rem;
+        height: 36px;
+    }
+
+    .input-group label {
+        font-size: 0.85rem;
+    }
+
+    .form-actions button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .form-grid {
+        gap: 0.6rem !important;
+    }
+}
+
+/* Landscape en celulares */
+@media (max-height: 600px) and (max-width: 640px) {
+    .modal-content {
+        max-height: 95vh;
+        padding: 1rem 1.2rem 2.5rem;
+    }
+
+    .input-group {
+        gap: 0.2rem;
+    }
+
+    .form-column {
+        gap: 0.6rem !important;
+    }
+}
+
+/* 
+   MODAL DE CONFIRMACIÓN DE ELIMINACIÓN
+*/
+
+.delete-confirmation-modal {
+    display: none;
+}
+
+.delete-confirmation-modal.active {
+    display: flex;
+}
+
+.delete-confirmation-modal .modal-content {
+    max-width: 400px;
+    width: 95%;
+    padding: 2rem;
+}
+
+.delete-confirmation-modal .modal-header {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.delete-confirmation-modal .modal-icon {
+    font-size: 2.5rem;
+    color: #f59e0b;
+    background: #fef3c7;
+    padding: 0.5rem;
+    flex-shrink: 0;
+}
+
+.delete-confirmation-modal h2 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.25rem;
+}
+
+.delete-confirmation-modal .delete-message {
+    padding: 1rem 0;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.delete-confirmation-modal .form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+.delete-confirmation-modal .form-actions button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.delete-confirmation-modal .delete-cancel-btn {
+    background: #e2e8f0;
+    color: #374151;
+}
+
+.delete-confirmation-modal .delete-cancel-btn:hover {
+    background: #cbd5e1;
+}
+
+.delete-confirmation-modal .delete-confirm-btn {
+    background: #e53935;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.delete-confirmation-modal .delete-confirm-btn:hover {
+    background: #d32f2f;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);
+}
+
+/* Modo oscuro - Modal de confirmación */
+.dark-mode-variables .delete-confirmation-modal .modal-icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.dark-mode-variables .delete-confirmation-modal h2 {
+    color: #e6eef8;
+}
+
+.dark-mode-variables .delete-confirmation-modal .delete-message {
+    color: #cbd5e1;
+}
+
+.dark-mode-variables .delete-confirmation-modal .delete-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+}
+
+.dark-mode-variables .delete-confirmation-modal .delete-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #e6eef8;
+}
+
+.dark-mode-variables .delete-confirmation-modal .delete-confirm-btn {
+    background: rgba(229, 57, 53, 0.2);
+    color: #ff6b6b;
+    border: 1px solid rgba(229, 57, 53, 0.4);
+}
+
+.dark-mode-variables .delete-confirmation-modal .delete-confirm-btn:hover {
+    background: rgba(229, 57, 53, 0.3);
+    border-color: rgba(229, 57, 53, 0.6);
 }

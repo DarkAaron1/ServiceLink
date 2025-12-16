@@ -44,7 +44,6 @@
             </div>
 
             <div class="sidebar">
-                <a href="">
                 <a href="{{ url('/index') }}">
                     <span class="material-icons-sharp">
                         dashboard
@@ -168,8 +167,7 @@
 
             <!-- Modal para nueva mesa -->
             <div>
-                <div id="mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true"
-                    tabindex="-1">
+                <div id="mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1">
                     <div class="modal-content">
                         <button id="close-modal">
                             <span class="material-icons-sharp">close</span>
@@ -262,16 +260,14 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
-                        <h2 style="margin:0;">Confirmar eliminación</h2>
+                        <h2 style="margin:0;" class="label-dark">Confirmar eliminación</h2>
                     </div>
                     <div style="padding:0.5rem 0 1rem 0;">
                         <p id="delete-mesa-message">¿Desea eliminar esta mesa?</p>
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
-                        <button type="button" id="delete-mesa-cancel" class="button-Add edit-btn"
-                            style="background:#e2e8f0; color:#374151; border:none; padding:0.6rem 1rem; border-radius:6px;">Cancelar</button>
-                        <button type="button" id="delete-mesa-confirm" class="button-Add delete-btn"
-                            style="background:#e53935; color:#fff; border:none; padding:0.6rem 1rem; border-radius:6px;">Eliminar</button>
+                        <button type="button" id="delete-mesa-cancel" class="button-Add edit-btn">Cancelar</button>
+                        <button type="button" id="delete-mesa-confirm" class="button-Add delete-btn">Eliminar</button>
                     </div>
                 </div>
             </div>
@@ -707,5 +703,4 @@
         })();
     </script>
 </body>
-
 </html>

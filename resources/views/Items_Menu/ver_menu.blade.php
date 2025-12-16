@@ -193,6 +193,23 @@
             color: var(--color-dark-variant);
         }
 
+        /* imagenes de item: ajustar al contenedor y mantener crop */
+        .item-image-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 0.6rem;
+            background: #f6f8fa;
+        }
+
+        .item-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
         /* RESPONSIVE */
         @media(max-width:700px) {
             .menu-header {
@@ -249,8 +266,18 @@
                         @if ($cat->items && $cat->items->count())
                             <div class="items-grid">
                                 @foreach ($cat->items as $item)
-                                    <article class="item-card" data-item-id="{{ $item->id }}"
-                                        data-cat="{{ $cat->id }}">
+                                    @php
+                                        $img = $item->imagen_url ?? null;
+                                        if (! $img && ! empty($item->imagen)) {
+                                            $img = \Illuminate\Support\Facades\Storage::url($item->imagen);
+                                        }
+                                    @endphp
+                                    <article class="item-card" data-item-id="{{ $item->id }}" data-cat="{{ $cat->id }}">
+                                        @if($img)
+                                            <div class="item-image-wrapper">
+                                                <img src="{{ $img }}" alt="{{ $item->nombre }}">
+                                            </div>
+                                        @endif
                                         <div class="item-top">
                                             <div>
                                                 <div class="item-name">{{ $item->nombre }}</div>

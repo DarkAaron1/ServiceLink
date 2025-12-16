@@ -9,6 +9,61 @@
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('style-tables.css') }}">
     <title>ServiceLink - Menú</title>
+    <style>
+        .card-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            background: #f6f8fa;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* modal: centrar y limitar altura para evitar que crezca la card de editar */
+        .mesa-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .mesa-modal[style*="display:flex"] {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 500px;
+            max-width: 95%;
+            padding: 2rem;
+            border-radius: 12px;
+            position: relative;
+            box-sizing: border-box;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: #fff;
+        }
+
+        /* limitar vista previa de imagen dentro del modal */
+        #imagenPreview {
+            max-height: 220px;
+            width: auto;
+            height: auto;
+            object-fit: cover;
+            display: block;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 
 <body>
@@ -107,7 +162,7 @@
             @endif
 
             <div style="margin-bottom:2rem;" class="management-tables ">
-                <div class="header" style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+                <div class="header" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; ">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
                         <label for="filter_categoria" class="filtro_cat">Filtrar por categoría:</label>
                         <select id="filter_categoria"
@@ -120,6 +175,7 @@
                             @endif
                         </select>
                     </div>
+                    
                     <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-end;">
                         {{-- Botón para crear nuevas categorias --}}
                         <button type="button" id="new-category-btn" class="btn-primary button-Add"
@@ -140,7 +196,21 @@
                 <!-- Lista del menú -->
                 <div class="menu-grid">
                     @foreach ($itemsMenu as $item)
+                        @php
+                            // usar la URL ya resuelta por el controlador; si no existe, generar con Storage::url()
+                            $imgSrc = $item->imagen_url ?? null;
+                            if (! $imgSrc && ! empty($item->imagen)) {
+                                $imgSrc = \Illuminate\Support\Facades\Storage::url($item->imagen);
+                            }
+                        @endphp
+
                         <div class="menu-card">
+                            @if ($imgSrc)
+                                <div class="card-image">
+                                    <img src="{{ $imgSrc }}" alt="{{ $item->nombre }}">
+                                </div>
+                            @endif
+
                             <div class="card-content">
                                 <div class="card-header">
                                     <h3>{{ $item->nombre }}</h3>
@@ -178,82 +248,97 @@
                 </div>
             </div>
 
-            <!-- Modal para crear nuevo-->
-            <div id="itemModal" class="modal"
-                style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); align-items:center; justify-content:center; z-index:1000;"
-                role="dialog" aria-modal="true" aria-labelledby="itemModalTitle">
+            <!-- Modal para crear nuevo Menú-->
+            <div id="itemModal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1"
+                aria-labelledby="itemModalTitle">
 
                 <div class="modal-content"
-                    style="background:#fff; padding:2rem; border-radius:12px; width:500px; max-width:95%; position:relative; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
+                    style="padding:2rem; border-radius:12px; width:500px; max-width:95%; position:relative; max-height:80vh; overflow-y:auto; box-sizing:border-box;">
                     <div class="modal-header" style="margin-bottom:1.5rem;">
-                        <h2 id="itemModalTitle" style="font-size:1.4rem; color:#2c3e50;">Crear Item del Menú</h2>
+                        <h2 id="itemModalTitle" class="label-dark">Crear Item del Menú</h2>
                         <button id="close-modal">
                             <span class="material-icons-sharp">close</span>
                         </button>
                     </div>
 
                     <form id="itemForm" method="POST" novalidate action="{{ route('items_menus.store') }}"
-                        style="display:flex; flex-direction:column; gap:1.2rem;">
+                        enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="_method" value="POST" id="method">
 
                         <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
                             <div class="form-group" style="display:flex; flex-direction:column; gap:0.5rem;">
-                                <label for="nombre" style="font-size:0.9rem; font-weight:500; color:#334155;">Nombre
-                                    del Item
-                                </label>
-                                <input type="text" id="nombre" name="nombre" required
-                                    placeholder="Ej. Lomo saltado" autocomplete="off"
-                                    style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem;">
+                                <div class="input-group">
+                                    <label for="nombre" class="label-dark">Nombre del Item</label>
+                                    <input type="text" id="nombre" name="nombre" required
+                                        placeholder="Ej. Lomo saltado" autocomplete="off"
+                                        style="padding:0.7rem;  border-radius:8px; font-size:0.95rem;">
+                                </div>
+
                             </div>
 
                             <div class="form-group" style="display:flex; flex-direction:column; gap:0.5rem;">
-                                <label for="precio"
-                                    style="font-size:0.9rem; font-weight:500; color:#334155;">Precio</label>
-                                <input type="number" id="precio" name="precio" step="0.01" required
-                                    placeholder="0.00" inputmode="decimal"
-                                    style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem;">
-                                <div class="field-note" style="font-size:0.8rem; color:#64748b;">Ingrese el precio en
-                                    la
-                                    moneda local.</div>
+                                <div class="input-group">
+                                    <label for="precio" class="label-dark">Precio</label>
+                                    <input type="number" id="precio" name="precio" step="0.01" required
+                                        placeholder="0.00" inputmode="decimal"
+                                        style="padding:0.7rem;  border-radius:8px; font-size:0.95rem;">
+                                </div>
                             </div>
 
                             <div class="form-group"
                                 style="grid-column:1/-1; display:flex; flex-direction:column; gap:0.5rem;">
-                                <label for="descripcion"
-                                    style="font-size:0.9rem; font-weight:500; color:#334155;">Descripción</label>
-                                <textarea id="descripcion" name="descripcion" required rows="3" placeholder="Breve descripción del plato"
-                                    style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem; resize:vertical;"></textarea>
+                                <div class="input-group">
+                                    <label for="descripcion" class="label-dark">Descripción</label>
+                                    <textarea id="descripcion" name="descripcion" required rows="3" placeholder="Breve descripción del plato"
+                                        style="padding:0.7rem; border-radius:8px; font-size:0.95rem; resize:vertical;"></textarea>
+                                </div>
                             </div>
 
                             <div class="form-group" style="display:flex; flex-direction:column; gap:0.5rem;">
-                                <label for="categoria_id"
-                                    style="font-size:0.9rem; font-weight:500; color:#334155;">Categoría</label>
-                                <select id="categoria_id" name="categoria_id" required
-                                    style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem; background-color:#fff;">
-                                    <option value="" disabled selected>Seleccione una categoría</option>
-                                    @if (isset($categorias) && $categorias->count())
-                                        @foreach ($categorias as $cat)
-                                            <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
-                                        @endforeach
-                                    @endif
-                                </select>
+                                <div class="input-group" <label for="categoria_id" class="label-dark">
+                                    Categoría</label>
+                                    <select id="categoria_id" name="categoria_id" required
+                                        style="padding:0.7rem; border-radius:8px; font-size:0.95rem;">
+                                        <option value="" disabled selected>Seleccione una categoría</option>
+                                        @if (isset($categorias) && $categorias->count())
+                                            @foreach ($categorias as $cat)
+                                                <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="form-group" style="display:flex; flex-direction:column; gap:0.5rem;">
-                                <label for="estado"
-                                    style="font-size:0.9rem; font-weight:500; color:#334155;">Disponibilidad</label>
-                                <select id="estado" name="estado" aria-label="Disponibilidad"
-                                    style="padding:0.7rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.95rem; background-color:#fff;">
-                                    <option value="disponible" selected>Disponible</option>
-                                    <option value="no_disponible">No disponible</option>
-                                </select>
+                                <div class="input-group">
+                                    <label for="estado" class="label-dark">Disponibilidad</label>
+                                    <select id="estado" name="estado" aria-label="Disponibilidad"
+                                        style="padding:0.7rem; border-radius:8px; font-size:0.95rem;">
+                                        <option value="disponible" selected>Disponible</option>
+                                        <option value="no_disponible">No disponible</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Imagen (opcional) -->
+                            <div class="form-group"
+                                style="grid-column:1/-1; display:flex; flex-direction:column; gap:0.5rem;">
+                                <div class="input-group">
+                                    <label for="imagen" class="label-dark">Imagen (opcional)</label>
+                                    <input type="file" id="imagen" name="imagen" accept="image/*"
+                                        style="padding:0.25rem;">
+                                    <div style="margin-top:0.5rem;">
+                                        <img id="imagenPreview" src="" alt="Preview imagen"
+                                            style="max-width:100%; max-height:160px; display:none; border-radius:8px; object-fit:cover;">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
+                        <br>
                         <div class="form-actions">
-                            <button type="button" id="cancel-modal">Cancelar</button>
                             <button type="submit">Crear Item Menú</button>
+                            <button type="button" id="cancel-modal">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -264,22 +349,17 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
-                        <h2 style="margin:0;">Confirmar eliminación</h2>
+                        <h2 style="margin:0;" class="label-dark">Confirmar eliminación</h2>
                     </div>
                     <div style="padding:0.5rem 0 1rem 0;">
                         <p id="delete-item-message">¿Desea eliminar este item?</p>
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
-                        <button type="button" id="delete-item-cancel" class="button-Add edit-btn"
-                            style="background:#e2e8f0; color:#374151; border:none; padding:0.6rem 1rem; border-radius:6px;">Cancelar</button>
-                        <button type="button" id="delete-item-confirm" class="button-Add delete-btn"
-                            style="background:#e53935; color:#fff; border:none; padding:0.6rem 1rem; border-radius:6px;">Eliminar</button>
+                        <button type="button" id="delete-item-cancel" class="button-Add edit-btn">Cancelar</button>
+                        <button type="button" id="delete-item-confirm" class="button-Add delete-btn">Eliminar</button>
                     </div>
                 </div>
             </div>
-
-
-
 
         </main>
         <!-- End of Main Content -->
@@ -301,12 +381,13 @@
                     </span>
                 </div>
 
+                
                 <div class="profile">
-                        <div class="info">
-                            <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
-                            <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
-                        </div>
+                    <div class="info">
+                        <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
+                        <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
                     </div>
+                </div>
 
             </div>
             <!-- End of Nav -->
@@ -319,7 +400,7 @@
                 </div>
             </div>
 
-          {{--   <div class="reminders">
+            {{--   <div class="reminders">
                 <div class="header">
                     <h2>Notificaciones</h2>
                     <span class="material-icons-sharp">
@@ -398,12 +479,14 @@
             itemForm.action = '{{ route('items_menus.store') }}';
             itemModalTitle.textContent = 'Crear Item del Menú';
             submitBtn.textContent = 'Crear Item Menú';
+            if (imagenPreview) { imagenPreview.src = ''; imagenPreview.style.display = 'none'; }
         });
 
         // Close modal functionality
         function hideModal() {
             modal.style.display = 'none';
             itemForm.reset();
+            if (imagenPreview) { imagenPreview.src = ''; imagenPreview.style.display = 'none'; }
         }
 
         if (closeModal) {
@@ -442,6 +525,18 @@
                     submitBtn.textContent = 'Actualizar Item Menú';
                     itemForm.action = `/items_menus/${itemId}`;
                     document.getElementById('method').value = 'PATCH';
+
+                    // manejar preview de imagen usando imagen_url
+                    if (imagenPreview) {
+                        const src = item.imagen_url || (item.imagen ? (String(item.imagen).startsWith('http') ? item.imagen : `/storage/${item.imagen}`) : '');
+                        if (src) {
+                            imagenPreview.src = src;
+                            imagenPreview.style.display = 'block';
+                        } else {
+                            imagenPreview.src = '';
+                            imagenPreview.style.display = 'none';
+                        }
+                    }
 
                     modal.style.display = 'flex';
                 })
@@ -570,9 +665,13 @@
                 const estadoClass = item.estado === 'disponible' ? 'available' : 'unavailable';
                 const estadoIcon = item.estado === 'disponible' ? 'check_circle' : 'cancel';
                 const estadoText = item.estado === 'disponible' ? 'Disponible' : 'No disponible';
+                // usar imagen_url si viene desde el servidor, fallback a ruta relativa
+                const imgSrc = item.imagen_url || (item.imagen ? (String(item.imagen).startsWith('http') ? item.imagen : `/storage/${item.imagen}`) : '');
+                const imgHtml = imgSrc ? `<div class="card-image"><img src="${imgSrc}" alt="${String(item.nombre).replace(/"/g, '&quot;')}"></div>` : '';
                 return `
                 <div class="menu-card">
                     <div class="card-content">
+                        ${imgHtml}
                         <div class="card-header">
                             <h3>${item.nombre}</h3>
                             <span class="price">$ ${Number(item.precio).toFixed(1)}</span>
@@ -628,6 +727,28 @@
         document.getElementById('new-category-btn').addEventListener('click', function() {
             window.location.href = "{{ route('categorias.index') }}";
         });
+
+        // obtener elementos de imagen
+        const imagenInput = document.getElementById('imagen');
+        const imagenPreview = document.getElementById('imagenPreview');
+
+        // preview local al seleccionar archivo
+        if (imagenInput) {
+            imagenInput.addEventListener('change', function() {
+                const file = this.files && this.files[0];
+                if (!file) {
+                    imagenPreview.src = '';
+                    imagenPreview.style.display = 'none';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagenPreview.src = e.target.result;
+                    imagenPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
     </script>
 
 </body>

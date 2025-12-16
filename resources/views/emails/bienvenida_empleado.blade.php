@@ -5,13 +5,13 @@ Te damos la bienvenida al sistema de **{{ config('app.name') }}**.
 
 Tu cuenta ha sido creada con éxito. Para tu primer acceso, utiliza las siguientes credenciales:
 
-* **Usuario (RUT):** Tu RUT completo.
-* **Contraseña Temporal:** Tu RUT (sin puntos ni dígito verificador).
 
-Es obligatorio que, una vez dentro del sistema, procedas a **cambiar tu contraseña de inmediato** por seguridad.
+Ingrese al siguiente link para establecer tu contraseña:
 
-@component('mail::button', ['url' => route('login')])
-Ir al Sistema (Login)
+- **Correo Electrónico:** {{ $datos['email'] }}
+
+@component('mail::button', ['url' => route('set-password')])
+Establecer Contraseña
 @endcomponent
 
 Si tienes algún problema para acceder, contacta con el administrador.

@@ -7,13 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Items_Menu;
 use App\Models\Restaurante;
+use App\Models\Usuario;
+use Illuminate\Support\Facades\DB;
 
 class ItemsCategoriaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Mostrar categorías del restaurante del admin si existe contexto
         $rutSesion = request()->session()->get('usuario_rut');
@@ -31,7 +33,33 @@ class ItemsCategoriaController extends Controller
         } else {
             $categorias = Items_Categoria::all();
         }
-        return view('categorias.index', compact('categorias'));
+
+
+          // Si no hay sesión, redirigir al login
+        $rut = $request->session()->get('usuario_rut');
+        if (! $rut) {
+            return redirect()->route('login');
+        }
+
+        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
+        $usuario = Usuario::where('rut', $rut)->first();
+        if (! $usuario) {
+            $usuario = (object) [
+                'nombre' => $request->session()->get('usuario_nombre'),
+                'email' => $request->session()->get('usuario_email'),
+                'rol_id' => null,
+                'estado' => null,
+            ];
+        }
+
+        // Obtener nombre del rol si aplica
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
+
+
+        return view('categorias.index', compact('categorias','categorias','usuario', 'rolName'));
     }
 
     /**
