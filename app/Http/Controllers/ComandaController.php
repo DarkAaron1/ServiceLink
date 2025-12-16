@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
 use App\Models\Restaurante;
 use App\Events\NuevoPedidoCreado;
+use Illuminate\Support\Facades\Log;
 
 class ComandaController extends Controller
 {
@@ -39,31 +40,23 @@ class ComandaController extends Controller
             $items = Items_Menu::where('estado', 'disponible')->get();
         }
 
-        //Datos de usuario para la vista
-        $rut = $request->session()->get('usuario_rut');
-        if (! $rut) {
+        // Datos del actor (Usuario o Empleado)
+        $actor = $this->getActor($request);
+        if (! $actor) {
             return redirect()->route('login');
         }
 
-        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
-        $usuario = Usuario::where('rut', $rut)->first();
-        if (! $usuario) {
-            $usuario = (object) [
-                'nombre' => $request->session()->get('usuario_nombre'),
-                'email' => $request->session()->get('usuario_email'),
-                'rut' => $request->session()->get('usuario_rut'),
-                'rol_id' => null,
-                'estado' => null,
-            ];
+        $usuario = $actor['model'] ?? (object) ['nombre' => $actor['nombre'], 'email' => $actor['email']];
+        $rolName = $actor['rolName'] ?? null;
+
+        // Si hay restaurante de empleado en sesión, usarlo
+        if ($actor['restaurante_id']) {
+            $restauranteId = $actor['restaurante_id'];
+            $mesas = Mesas::where('restaurante_id', $restauranteId)->get();
+            $items = Items_Menu::where('restaurante_id', $restauranteId)->where('estado', 'disponible')->get();
         }
 
-        // Obtener nombre del rol si aplica
-        $rolName = null;
-        if (! empty($usuario->rol_id)) {
-            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
-        }
-
-        return view('comandas.index', compact('mesas', 'items'), compact('usuario', 'rolName'));
+        return view('comandas.index', compact('mesas', 'items', 'usuario', 'rolName'));
     }
 
     /**
@@ -87,7 +80,7 @@ private function normalizarRut(?string $rut): ?string
     public function store(Request $request)
     {
         // 1. Depuración y Validación
-        \Log::info('Inicio ComandaController@store', $request->all());
+        Log::info('Inicio ComandaController@store', $request->all());
 
         $datosValidados = $request->validate([
             'mesa_id' => 'required|exists:mesas,id', // 'mesas' es la tabla en BD
@@ -104,8 +97,8 @@ private function normalizarRut(?string $rut): ?string
         DB::beginTransaction();
         try {
             // 2. Normalizar RUT (Solución error 1452)
-            $rutSesion = $request->session()->get('usuario_rut');
-            $rutEmpleado = $this->normalizarRut($rutSesion);
+            $actor = $this->getActor($request);
+            $rutEmpleado = $this->normalizarRut($actor['rut'] ?? null);
             
             if (empty($rutEmpleado)) {
                 throw new \Exception('No se pudo validar el RUT del empleado en sesión.');
@@ -147,7 +140,10 @@ private function normalizarRut(?string $rut): ?string
             }
 
             DB::commit();
-            \Log::info('Comanda creada ID: ' . $comanda->id);
+            Log::info('Comanda creada ID: ' . $comanda->id);
+
+            // Información de diagnóstico: comprobar si broadcasting está activo
+            Log::info('Broadcast driver configured: ' . config('broadcasting.default'));
 
             if ($request->wantsJson()) {
                 return response()->json(['success' => true, 'comanda' => $comanda->load('pedidos')], 201);
@@ -157,7 +153,7 @@ private function normalizarRut(?string $rut): ?string
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Log::error('Error FATAL en Store:', ['error' => $e->getMessage()]);
+            Log::error('Error FATAL en Store:', ['error' => $e->getMessage()]);
             
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'error' => $e->getMessage()], 500);

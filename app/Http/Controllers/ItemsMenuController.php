@@ -31,28 +31,20 @@ class ItemsMenuController extends Controller
             $itemsMenu = Items_Menu::with('categoria')->get();
             $categorias = Items_Categoria::all();
         }
-        //Datos de usuario para la vista
-        $rut = $request->session()->get('usuario_rut');
-        if (! $rut) {
+        // Datos del actor (Usuario o Empleado)
+        $actor = $this->getActor($request);
+        if (! $actor) {
             return redirect()->route('login');
         }
 
-        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
-        $usuario = Usuario::where('rut', $rut)->first();
-        if (! $usuario) {
-            $usuario = (object) [
-                'nombre' => $request->session()->get('usuario_nombre'),
-                'email' => $request->session()->get('usuario_email'),
-                'rut' => $request->session()->get('usuario_rut'),
-                'rol_id' => null,
-                'estado' => null,
-            ];
-        }
+        $usuario = $actor['model'] ?? (object) ['nombre' => $actor['nombre'], 'email' => $actor['email']];
+        $rolName = $actor['rolName'] ?? null;
 
-        // Obtener nombre del rol si aplica
-        $rolName = null;
-        if (! empty($usuario->rol_id)) {
-            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        // Si no hay restaurante en contexto, intentar usar el restaurante del empleado si aplica
+        if (! $this->getContextRestauranteId() && isset($actor['restaurante_id']) && $actor['restaurante_id']) {
+            $restauranteId = $actor['restaurante_id'];
+            $itemsMenu = Items_Menu::with('categoria')->where('restaurante_id', $restauranteId)->get();
+            $categorias = Items_Categoria::where('restaurante_id', $restauranteId)->get();
         }
 
         // añadir imagen_url para consumo en la vista

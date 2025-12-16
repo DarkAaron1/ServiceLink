@@ -11,17 +11,17 @@
     <title>ServiceLink - Comandas</title>
     <!-- Los estilos de mesas se cargan desde style-tables.css -->
     <style>
-        /* Modal scrollable */
+        /* Modal: no scroll propio, el scroll estará sólo en el listado de items */
         .mesa-modal {
-            overflow-y: auto;
             padding: 2rem 0;
         }
 
         .modal-content {
             margin: auto;
             max-height: 90vh;
-            overflow-y: auto;
         }
+        /* Asegurar que la lista de items tenga scroll independiente */
+        #items-list-wrapper { overflow:auto; max-height:350px; }
     </style>
 </head>
 
@@ -29,54 +29,7 @@
     <script src="{{ asset('index.js') }}"></script>
     <div class="container">
         <!-- Sidebar Section -->
-        <aside>
-            <div class="toggle">
-                <div class="logo">
-                    <img src="{{ asset('favicon.ico') }}">
-                    <h2>Service<span class="primary">Link</span></h2>
-                </div>
-                <div class="close" id="close-btn">
-                    <span class="material-icons-sharp">
-                        close
-                    </span>
-                </div>
-            </div>
-
-            <div class="sidebar">
-                <a href="{{ route('demo.index') }}">
-                    <span class="material-icons-sharp">dashboard</span>
-                    <h3>Dashboard</h3>
-                </a>
-                <a href="{{ route('empleados.index') }}">
-                    <span class="material-icons-sharp">person_outline</span>
-                    <h3>Colaboradores</h3>
-                </a>
-                <a href="{{ route('comandas.index') }}">
-                    <span class="material-icons-sharp">receipt_long</span>
-                    <h3>Comandas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">insights</span>
-                    <h3>Estadísticas</h3>
-                </a>
-                <a href="{{ route('cocina.index') }}" class="active">
-                    <span class="material-icons-sharp">restaurant</span>
-                    <h3>Cocina</h3>
-                </a>
-                <a href="{{ route('items_menu.index') }}">
-                    <span class="material-icons-sharp">inventory</span>
-                    <h3>Menú</h3>
-                </a>
-                <a href="{{ route('mesas.index') }}">
-                    <span class="material-icons-sharp">table_restaurant</span>
-                    <h3>Mesas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">logout</span>
-                    <h3>Logout</h3>
-                </a>
-            </div>
-        </aside>
+        @include('partials.sidebar')
         <!-- End of Sidebar Section -->
 
         <!-- Main Content -->
@@ -99,7 +52,8 @@
                 <div class="mesas-grid">
                     @if (isset($mesas) && $mesas->count())
                         @foreach ($mesas as $mesa)
-                            <div class="mesa-card card-mesa estado-{{ strtolower($mesa->estado) }}" data-mesa-id="{{ $mesa->id }}">
+                            <div class="mesa-card card-mesa estado-{{ strtolower($mesa->estado) }}"
+                                data-mesa-id="{{ $mesa->id }}">
                                 <div class="icon">
                                     <span class="material-icons-sharp">table_restaurant</span>
                                 </div>
@@ -123,11 +77,24 @@
             </div>
 
             <!-- Modal para crear comanda -->
-            <div id="create-comanda-modal" class="mesa-modal" style="display:none;" role="dialog" aria-modal="true">
-                <div class="modal-content">
-                    <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div id="create-comanda-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true"
+                tabindex="-1" style="display:none;">
+                <div class="modal-content"
+                    style="
+                        padding:2rem;
+                        border-radius:12px;
+                        width:800px;
+                        height:600px;
+                        max-width:none;
+                        max-height:none;
+                        overflow:auto;
+                        box-sizing:border-box;">
+                    <button id="close-create-comanda" class="btn" aria-label="Cerrar">
+                        <span class="material-icons-sharp">close</span>
+                    </button>
+                    <div class="modal-header">
+                        <span class="modal-icon material-icons-sharp">receipt_long</span>
                         <h2 id="create-comanda-title" class="label-dark">Crear Comanda</h2>
-                        <button id="close-create-comanda" class="btn"> <span class="material-icons-sharp">close</span></button>
                     </div>
 
                     <form id="create-comanda-form" method="POST" action="{{ route('comandas.store') }}">
@@ -135,112 +102,99 @@
                         <input type="hidden" name="mesa_id" id="mesa_id">
                         <input type="hidden" name="estado" value="abierta">
 
-                        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-                            <div style="flex:1; min-width:280px;">
-                                <h3>Seleccionar Producto</h3>
-                                <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom: 0.75rem;">
-                                    <select id="select-item" class="form-control" style="flex: 1; padding: .5rem;">
-                                        <option value="">-- Seleccione Item --</option>
-                                        @foreach($items as $item)
-                                            <option value="{{ $item->id }}" data-price="{{ $item->precio }}">
-                                                {{ $item->nombre }} - ${{ number_format($item->precio, 0, ',', '.') }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <input id="item-cantidad" type="number" min="1" value="1" class="form-control"
-                                        style="width:80px;" />
-                                    <button type="button" id="add-item-btn" class="btn">Agregar</button>
-                                </div>
+                        <div class="form-group" style="display:flex; gap:1rem; flex-wrap:wrap;">
+                            <div style="flex:1;">
 
-                                <div id="items-list-wrapper" style="max-height:350px; overflow:auto;">
-                                    <table class="table" style="width:100%;">
-                                        <thead>
-                                            <tr>
-                                                <th>Item</th>
-                                                <th>Cant.</th>
-                                                <th>Precio</th>
-                                                <th>Subtotal</th>
-                                                <th>Obs.</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="order-items-body">
-                                            <!-- filas agregadas por JS -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <div class="input-group" style="margin-bottom:0.75rem;">
+                                    <div style="display:flex; gap:0.5rem; align-items:flex-end; flex-wrap:wrap;">
+                                        <div style="flex:1; min-width:180px;">
+                                            <h3>Seleccionar Producto</h3>
+                                            <select id="select-item" class="form-control"
+                                                style="width:100%; padding:.5rem;">
+                                                <option value="">-- Seleccione Item --</option>
+                                                @foreach ($items as $item)
+                                                    <option value="{{ $item->id }}"
+                                                        data-price="{{ $item->precio }}">
+                                                        {{ $item->nombre }} -
+                                                        ${{ number_format($item->precio, 0, ',', '.') }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
 
-                                <div
-                                    style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.75rem;">
-                                    <strong>Total:</strong>
-                                    <strong id="order-total">$0</strong>
-                                </div>
+                                        <div style="width:220px; display:flex; gap:0.5rem; align-items:flex-end;">
+                                            <div style="display:flex; flex-direction:column; width:100%;">
+                                                <label for="item-cantidad" class="label-dark"
+                                                    style="font-size:0.85rem;">Cantidad:</label>
+                                                <div style="display:flex; gap:0.5rem; align-items:center;">
+                                                    <input id="item-cantidad" type="number" min="1"
+                                                        value="1" class="form-control" style="width:80px;" />
+                                                    <button type="button" id="add-item-btn" class="button-Add"
+                                                        style="height:38px;">Agregar</button>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                            </div>
-
-                            <div style="flex: 0 0 320px; min-width:280px;">
-                                <h3>Información Comanda</h3>
-                                <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                                    <label for="observaciones_global">Observaciones (comanda)</label>
-                                    <textarea id="observaciones_global" name="observaciones_global" rows="3"
-                                        class="form-control" placeholder="Observaciones generales"></textarea>
-
-                                    <input type="hidden" name="order_items" id="order_items_input" />
-
-                                    <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
-                                        <button type="button" id="cancel-create-comanda" class="btn">Cancelar</button>
-                                        <button type="submit" class="btn primary">Crear Comanda</button>
                                     </div>
                                 </div>
                             </div>
+
+                            <div id="items-list-wrapper" style="max-height:350px; overflow:auto;">
+                                <table class="table order-table" style="width:100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Cant.</th>
+                                            <th>Precio</th>
+                                            <th>Subtotal</th>
+                                            <th>Obs.</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="order-items-body">
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="form-actions"
+                                style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                                <strong>Total:</strong>
+                                <strong id="order-total">$0</strong>
+                            </div>
+
                         </div>
-                    </form>
 
+                        <div style="flex: 0 0 320px; min-width:240px;"><br>
+                            <h3>Información Comanda</h3>
+                            <div class="input-group" style="display:flex; flex-direction:column; gap:0.5rem;"><br>
+                                <label for="observaciones_global" class="label-dark">Observaciones (comanda)</label>
+                                <textarea id="observaciones_global" name="observaciones_global" rows="3"
+                                    placeholder="Observaciones generales" style="border-radius:8px solid; font-size:0.95rem"></textarea>
+
+                                <input type="hidden" name="order_items" id="order_items_input" />
+
+                                <div class="form-actions"
+                                    style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+                                    <button type="button" id="cancel-create-comanda"
+                                        class="btn">Cancelar</button>
+                                    <button type="submit" style=" justify-content: center;" class="submit-btn">Crear Comanda</button>
+                                </div>
+                            </div>
+                        </div>
                 </div>
-            </div>
-
-        </main>
-        <!-- End of Main Content -->
-
-        <div class="right-section">
-            <div class="nav">
-                <button id="menu-btn">
-                    <span class="material-icons-sharp">
-                        menu
-                    </span>
-                </button>
-                <div class="dark-mode">
-                    <span class="material-icons-sharp active">
-                        light_mode
-                    </span>
-                    <span class="material-icons-sharp">
-                        dark_mode
-                    </span>
-                </div>
-
-                <div class="profile">
-                    <div class="info">
-                        <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
-                        <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
-                    </div>
-                </div>
+                </form>
 
             </div>
-            <!-- End of Nav -->
+    </main>
+    <!-- End of Main Content -->
 
-            <div class="user-profile">
-                <div class="logo">
-                    <img src="{{  asset('favicon.ico') }}">
-                    <h2>{{ $usuario->nombre ?? 'Usuario' }}</h2>
-                    <p>{{ $rolName ?? 'Rol' }}</p>
-                </div>
-            </div>
-        </div>
+    @include('partials.right-section')
 
     </div>
 
     <script>
-        (function () {
+        (function() {
             const mesaCards = document.querySelectorAll('.card-mesa');
             const modal = document.getElementById('create-comanda-modal');
             const closeModal = document.getElementById('close-create-comanda');
@@ -274,13 +228,13 @@
                         <td>${formatCurrency(it.precio)}</td>
                         <td>${formatCurrency(it.precio * it.cantidad)}</td>
                         <td><input type="text" data-index="${index}" class="form-control obs-input" value="${it.observaciones ?? ''}" placeholder="Obs. (ej: sin sal)" /></td>
-                        <td><button type="button" class="btn remove-item" data-index="${index}">Quitar</button></td>
+                        <td style="text-align:center;"><button type="button" class="remove-item btn-remove" data-index="${index}" aria-label="Quitar"><span class="material-icons-sharp">delete</span></button></td>
                     </tr>`).join('');
 
                 // attach events for remove buttons and obs updates
                 document.querySelectorAll('.remove-item').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        const idx = parseInt(e.target.dataset.index);
+                        const idx = parseInt(e.currentTarget.dataset.index);
                         orderItems.splice(idx, 1);
                         renderOrder();
                         updateTotal();
@@ -307,11 +261,16 @@
                     renderOrder();
                     updateTotal();
                     modal.style.display = 'flex';
+                    modal.setAttribute('aria-hidden', 'false');
+                    // focus primer campo útil
+                    const firstInput = modal.querySelector('#select-item');
+                    if (firstInput) firstInput.focus();
                 });
             });
 
             function hideModal() {
                 modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
             }
 
             if (closeModal) closeModal.addEventListener('click', hideModal);
@@ -331,7 +290,13 @@
                 if (existingIndex >= 0) {
                     orderItems[existingIndex].cantidad += cantidad;
                 } else {
-                    orderItems.push({ item_id: itemId, nombre, precio, cantidad, observaciones: '' });
+                    orderItems.push({
+                        item_id: itemId,
+                        nombre,
+                        precio,
+                        cantidad,
+                        observaciones: ''
+                    });
                 }
                 selectItem.value = '';
                 itemCantidad.value = 1;
@@ -344,7 +309,12 @@
                     e.preventDefault();
                     return alert('Agregue al menos un item a la comanda');
                 }
-                orderItemsInput.value = JSON.stringify(orderItems.map(i => ({ item_id: i.item_id, cantidad: i.cantidad, observaciones: i.observaciones, valor_item_ATM: i.precio })));
+                orderItemsInput.value = JSON.stringify(orderItems.map(i => ({
+                    item_id: i.item_id,
+                    cantidad: i.cantidad,
+                    observaciones: i.observaciones,
+                    valor_item_ATM: i.precio
+                })));
             });
 
             // Refresh mesas (reload page or call an endpoint).
@@ -352,7 +322,9 @@
             if (refreshBtn) refreshBtn.addEventListener('click', () => location.reload());
 
             // close modal by clicking outside
-            modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) hideModal();
+            });
         })();
     </script>
 </body>

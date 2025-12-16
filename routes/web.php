@@ -21,10 +21,17 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 
 Route::get('/index', [DashboardController::class, 'index'])->name('demo.index');
 
-// Reemplazado: mostrar login mediante controlador
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-// Procesar login
-Route::post('/login', [LoginController::class, 'authenticate'])->name('login.perform');
+// Pantalla de selección: elegir login para Usuario o Empleado
+Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+
+// Login para Usuario
+Route::get('/login/usuario', [LoginController::class, 'showUsuarioLogin'])->name('login.usuario');
+Route::post('/login/usuario', [LoginController::class, 'authenticateUsuario'])->name('login.usuario.perform');
+
+// Login para Empleado
+Route::get('/login/empleado', [LoginController::class, 'showEmpleadoLogin'])->name('login.empleado');
+Route::post('/login/empleado', [LoginController::class, 'authenticateEmpleado'])->name('login.empleado.perform');
+
 // Logout (GET para compatibilidad con enlaces simples en UI)
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -62,7 +69,7 @@ Route::get('/welcome', function () {
 })->name('welcome');
 
 // pantalla de administración de usuarios
-Route::get('/admin', [UsuariosController::class, 'index'])->name('admin.index');
+Route::get('/admin', [UsuariosController::class, 'index'])->name('admin.index')->middleware('role:Administrador');
 
 // recursos mínimos para usuarios (crear, mostrar, actualizar estado)
 Route::post('/usuarios', [UsuariosController::class, 'store'])->name('usuarios.store');
@@ -77,8 +84,8 @@ Route::patch('/mesas/{id}', [MesasController::class, 'update'])->name('mesas.upd
 Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas.destroy');
 
 // Rutas para comandas
-Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.index');
-Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store');
+Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.index')->middleware('role:Mesero,Administrador');
+Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store')->middleware('role:Mesero,Administrador');
 Route::get('/comandas/{comanda}', [ComandaController::class, 'show'])->name('comandas.show');
 
 // Rutas para items menú
@@ -105,23 +112,27 @@ Route::get('/colaboradores', [EmpleadoController::class, 'index'])->name('emplea
 Route::post('/colaboradores', [EmpleadoController::class, 'store'])->name('empleados.store');
 Route::put('/colaboradores/{rut}', [EmpleadoController::class, 'update'])->name('empleados.update');
 Route::delete('/colaboradores/{rut}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
+// Endpoint para reestablecer contraseña de un colaborador (invocado desde la UI)
+Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, 'reestablecerContrasena'])->name('colaboradores.reset-password');
 
 // Rutas para crear y almacenar un restaurante
 Route::get('restaurante/create', [RestauranteController::class, 'create'])->name('restaurante.create');
 Route::post('restaurante/store', [RestauranteController::class, 'store'])->name('restaurante.store');
 
-//Ruta para contraseñas
-Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, 'reestablecerContrasena'])->name('empleados.reset_password');
 
 //Ruta QR
 Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::class, 'generateQrCode'])->name('generate.qr');
 
 //Ruta cocina
-Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index');
-
-
+Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index')->middleware('role:Cocinero');
+// Endpoint para comprobar si hay nuevas órdenes (usa en polling cliente)
+Route::get('/cocina/ordenes/latest', [App\Http\Controllers\PedidoController::class, 'latestOrder'])->name('cocina.ordenes.latest');
 
 
 // Formulario para establecer contraseña después del registro
-Route::get('/set-password', [SetPasswordController::class, 'show'])->name('set-password');
-Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.post');
+// token es opcional: puede venir en la ruta o como query (?token=...)
+Route::get('/set-password/{token?}', [SetPasswordController::class, 'show'])
+    ->name('set-password');
+
+Route::post('/set-password/{token?}', [SetPasswordController::class, 'store'])
+    ->name('set-password.post');

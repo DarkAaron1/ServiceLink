@@ -124,6 +124,8 @@
 						<input id="email" type="email" name="email" placeholder="Correo electrónico" value="{{ old('email') }}" required autofocus>
 					</label>
 
+					<div id="emailHelp" class="small" aria-live="polite" style="color:#d0464c;display:none;margin-top:.4rem;">Correo inválido</div>
+
 					<div style="margin-top:1rem;">
 						<button type="submit" id="sendBtn" class="btn-primary" disabled>Enviar enlace</button>
 					</div>
@@ -133,9 +135,16 @@
 						(function(){
 							const email = document.getElementById('email');
 							const sendBtn = document.getElementById('sendBtn');
+							const emailHelp = document.getElementById('emailHelp');
 							function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 							function update(){ if(!email||!sendBtn) return; sendBtn.disabled = !validEmail(email.value.trim()); }
-							if(email){ email.addEventListener('input', update); update(); }
+							if(email){
+								email.addEventListener('input', function(){ if(emailHelp) emailHelp.style.display='none'; update(); });
+								email.addEventListener('blur', function(){ if(!validEmail(email.value.trim())) { if(emailHelp) { emailHelp.style.display='block'; emailHelp.textContent='Correo inválido'; } sendBtn.disabled = true; } else { if(emailHelp) emailHelp.style.display='none'; update(); } });
+								email.addEventListener('change', function(){ if(!validEmail(email.value.trim())) { if(emailHelp) { emailHelp.style.display='block'; emailHelp.textContent='Correo inválido'; } sendBtn.disabled = true; } else { if(emailHelp) emailHelp.style.display='none'; update(); } });
+								email.addEventListener('focusout', function(){ if(!validEmail(email.value.trim())) { if(emailHelp) { emailHelp.style.display='block'; emailHelp.textContent='Correo inválido'; } sendBtn.disabled = true; } else { if(emailHelp) emailHelp.style.display='none'; update(); } });
+								update();
+							}
 						})();
 					</script>
 

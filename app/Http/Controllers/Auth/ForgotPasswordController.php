@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
+use Exception;
 
 
 class ForgotPasswordController extends Controller
@@ -50,8 +52,30 @@ class ForgotPasswordController extends Controller
             'email' => $email,
         ];
 
-        $token = Str::random(60);
+        // Generar token y, si existe la tabla, guardarlo para validación posterior
+        $token = bin2hex(random_bytes(32));
         $url = route('set-password');
+
+        try {
+            if (Schema::hasTable('password_set_tokens')) {
+                DB::table('password_set_tokens')->insert([
+                    'email' => $email,
+                    'type' => $foundInUsers ? 'usuario' : 'empleado',
+                    'token' => $token,
+                    'expires_at' => now()->addHours(24),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $url = route('set-password', ['token' => $token]);
+            } else {
+                // fallback: enviar link con email en query
+                $url = route('set-password', ['email' => $email]);
+            }
+        } catch (Exception $e) {
+            // Si falla al escribir token, fallback a link con email
+            $url = route('set-password', ['email' => $email]);
+        }
 
         $html = "<!doctype html>
 			<html lang='es'><head><meta charset='utf-8'><title>ServiceLink</title></head><body>

@@ -102,7 +102,7 @@
     font-size: 1rem;
     background: #fafbfc;
     outline: none;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cccfd3;
     transition: border-color 0.2s;
 }
 
@@ -144,6 +144,7 @@
 
 #cancel-modal,
 #close-modal-btn,
+#cancel-create-comanda,
 #cancel-edit-modal {
     border: 1.5px solid #bdbdbd;
     background: #fff;
@@ -152,6 +153,7 @@
 
 #cancel-modal:hover,
 #close-modal-btn:hover,
+#cancel-create-comanda,
 #reset-password-btn:hover,
 #cancel-edit-mesa:hover {
     background: #e3e2e2;
@@ -207,6 +209,58 @@
 
 .button-Add:hover {
     box-shadow: 0 6px 18px rgba(11, 116, 222, 0.14);
+}
+
+/* Order table styles for comandas */
+.order-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.95rem;
+}
+.order-table thead th {
+    text-align: left;
+    padding: 0.75rem 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    background: #fbfdff;
+    border-bottom: 1px solid #e6eef6;
+}
+.order-table tbody td {
+    padding: 0.6rem 0.9rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+.order-table tbody tr:nth-child(even) {
+    background: #ffffff;
+}
+.order-table td:nth-child(2) { text-align: center; width:80px; }
+.order-table td:nth-child(3), .order-table td:nth-child(4) { text-align: right; white-space: nowrap; }
+.order-table .obs-input { padding: 0.45rem 0.5rem; font-size: 0.95rem; border-radius:6px; }
+
+/* Remove button */
+.btn-remove {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
+}
+.btn-remove .material-icons-sharp { font-size: 1.05rem; }
+.btn-remove:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); }
+
+@media screen and (max-width: 640px) {
+    .order-table thead { display: none; }
+    .order-table, .order-table tbody, .order-table tr, .order-table td { display: block; width: 100%; }
+    .order-table tr { margin-bottom: 0.5rem; border: 1px solid #eef2f7; border-radius: 8px; padding: 0.5rem; }
+    .order-table td { padding: 0.4rem 0.6rem; text-align: left; }
+    .order-table td:nth-child(3), .order-table td:nth-child(4) { text-align: left; }
 }
 
 .button-volver {

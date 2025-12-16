@@ -116,7 +116,7 @@
 			</div>
 
 			<div class="login-right">
-				<form class="login-form" method="POST" action="{{ route('login.perform') }}">
+				<form class="login-form" method="POST" action="{{ route('login.usuario.perform') }}">
 					@csrf
 					<h1>Iniciar Sesión</h1>
 					<p class="small">Introduce tus credenciales para continuar</p>

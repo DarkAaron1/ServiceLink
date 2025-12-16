@@ -189,59 +189,13 @@
     <script src="{{ asset('index.js') }}"></script>
     <div class="container">
         <!-- Sidebar Section -->
-        <aside>
-            <div class="toggle">
-                <div class="logo">
-                    <img src="{{ asset('favicon.ico') }}">
-                    <h2>Service<span class="primary">Link</span></h2>
-                </div>
-                <div class="close" id="close-btn">
-                    <span class="material-icons-sharp">
-                        close
-                    </span>
-                </div>
-            </div>
-
-            <div class="sidebar">
-                <a href="{{ route('demo.index') }}">
-                    <span class="material-icons-sharp">dashboard</span>
-                    <h3>Dashboard</h3>
-                </a>
-                <a href="{{ route('empleados.index') }}">
-                    <span class="material-icons-sharp">person_outline</span>
-                    <h3>Colaboradores</h3>
-                </a>
-                <a href="{{ route('comandas.index') }}">
-                    <span class="material-icons-sharp">receipt_long</span>
-                    <h3>Comandas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">insights</span>
-                    <h3>Estadísticas</h3>
-                </a>
-                <a href="{{ route('cocina.index') }}" class="active">
-                    <span class="material-icons-sharp">restaurant</span>
-                    <h3>Cocina</h3>
-                </a>
-                <a href="{{ route('items_menu.index') }}">
-                    <span class="material-icons-sharp">inventory</span>
-                    <h3>Menú</h3>
-                </a>
-                <a href="{{ route('mesas.index') }}">
-                    <span class="material-icons-sharp">table_restaurant</span>
-                    <h3>Mesas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">logout</span>
-                    <h3>Logout</h3>
-                </a>
-            </div>
-        </aside>
+        @include('partials.sidebar')
         <!-- End of Sidebar Section -->
 
         <!-- Main Content: reemplazado por gestión de Colaboradores -->
         <main>
             <h1>Gestión de Colaboradores</h1>
+            @php $role = session('empleado_cargo') ?? (session('usuario_nombre') ? 'Usuario' : null); @endphp
 
             @if (session('success'))
                 <div class="alert success">{{ session('success') }}</div>
@@ -249,10 +203,12 @@
 
             <div style="margin-bottom:2rem;" class="management-tables">
                 <div class="header" style="display:flex; align-items:center; justify-content:flex-end; gap:1rem;">
+                    @if(in_array($role, ['Administrador','Usuario']))
                     <button id="open-modal" class="btn-primary button-Add">
                         <span class="material-icons-sharp" style="font-size:1.3rem;">add</span>
                         Nuevo Colaborador
                     </button>
+                    @endif
                 </div>
 
                 <div class="colaboradores-grid">
@@ -275,9 +231,11 @@
                                         data-employee='@json($e)'>
                                         <span class="material-icons-sharp">edit</span>
                                     </button>
+                                    @if(in_array($role, ['Administrador','Usuario']))
                                     <button class="mesa-btn delete" type="button" data-rut="{{ $e->rut }}">
                                         <span class="material-icons-sharp">delete</span>
                                     </button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -290,96 +248,7 @@
         <!-- End Main Content -->
 
         <!-- Right Section -->
-        <div class="right-section">
-            <div class="nav">
-                <button id="menu-btn">
-                    <span class="material-icons-sharp">
-                        menu
-                    </span>
-                </button>
-                <div class="dark-mode">
-                    <span class="material-icons-sharp active">
-                        light_mode
-                    </span>
-                    <span class="material-icons-sharp">
-                        dark_mode
-                    </span>
-                </div>
-
-                <div class="profile">
-                    <div class="info">
-                        <p>Bienvenido, <b>{{ $usuario->nombre ?? 'Usuario' }}</b></p>
-                        <small class="text-muted">{{ $rolName ?? 'Admin' }}</small>
-                    </div>
-                </div>
-
-            </div>
-            <!-- End of Nav -->
-
-            <div class="user-profile">
-                <div class="logo">
-                    <img src="{{ asset('favicon.ico') }}">
-                    <h2>{{ $usuario->nombre ?? 'Usuario' }}</h2>
-                    <p>{{ $rolName ?? 'Rol' }}</p>
-                </div>
-            </div>
-
-            {{-- <div class="reminders">
-                <div class="header">
-                    <h2>Notificaciones</h2>
-                    <span class="material-icons-sharp">
-                        notifications_none
-                    </span>
-                </div>
-
-                <div class="notification">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            volume_up
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Workshop</h3>
-                            <small class="text_muted">
-                                08:00 AM - 12:00 PM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
-                </div>
-
-                <div class="notification deactive">
-                    <div class="icon">
-                        <span class="material-icons-sharp">
-                            edit
-                        </span>
-                    </div>
-                    <div class="content">
-                        <div class="info">
-                            <h3>Workshop</h3>
-                            <small class="text_muted">
-                                08:00 AM - 12:00 PM
-                            </small>
-                        </div>
-                        <span class="material-icons-sharp">
-                            more_vert
-                        </span>
-                    </div>
-                </div>
-
-                <div class="notification add-reminder">
-                    <div>
-                        <span class="material-icons-sharp">
-                            add
-                        </span>
-                        <h3>Add Reminder</h3>
-                    </div>
-                </div> --}}
-
-        </div>
+        @include('partials.right-section')
 
     </div>
 

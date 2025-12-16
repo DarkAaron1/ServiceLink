@@ -158,10 +158,13 @@
             <h2>Cambiar contraseña</h2>
             <p class="lead">Introduce tu nueva contraseña y repítela. Debe tener al menos 8 caracteres.</p>
 
-            <form method="POST" action="{{ route('set-password.post') }}" id="changePasswordForm" novalidate>
+            @php
+                $tokenValue = $token ?? request()->route('token') ?? request()->query('token');
+            @endphp
+            <form method="POST" action="{{ route('set-password.post', ['token' => $tokenValue]) }}" id="changePasswordForm" novalidate>
                 @csrf
-                <input type="hidden" name="token" value="{{ $token ?? request()->query('token') }}">
-                <input type="hidden" name="email" value="{{ $email ?? request()->query('email') }}">
+                <input type="hidden" name="token" value="{{ old('token', $tokenValue) }}">
+                <input type="hidden" name="email" value="{{ old('email', $email ?? request()->query('email')) }}">
 
                 <div class="field">
                     <label for="password">Contraseña nueva</label>
@@ -291,6 +294,51 @@
 
             // initial check in case of pre-filled fields
             validate();
+        })();
+    </script>
+    <script>
+        // Ensure token is set from URL (path, query or hash) in case server-render didn't include it
+        (function(){
+            try {
+                const tokenInput = document.querySelector('input[name="token"]');
+                if (!tokenInput) return;
+                if (tokenInput.value) return; // already set
+
+                // 1) check path: /set-password/TOKEN
+                const pathMatch = window.location.pathname.match(/\/set-password\/(.+)$/);
+                if (pathMatch && pathMatch[1]) {
+                    tokenInput.value = decodeURIComponent(pathMatch[1]);
+                }
+
+                // 2) check query string
+                if (!tokenInput.value) {
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.has('token')) tokenInput.value = params.get('token');
+                }
+
+                // 3) check hash fragment (#token=..., #email=...)
+                if (!tokenInput.value && window.location.hash) {
+                    const hash = window.location.hash.replace(/^#/, '');
+                    const hp = new URLSearchParams(hash);
+                    if (hp.has('token')) tokenInput.value = hp.get('token');
+                    if (hp.has('email')) {
+                        const emailInput = document.querySelector('input[name="email"]');
+                        if (emailInput && !emailInput.value) emailInput.value = hp.get('email');
+                    }
+                }
+
+                // also ensure form action includes token and email (in case JS submitted without them)
+                const form = document.getElementById('changePasswordForm');
+                const emailInput = document.querySelector('input[name="email"]');
+                if (form && (tokenInput.value || (emailInput && emailInput.value))) {
+                    const actionUrl = new URL(form.action, window.location.origin);
+                    if (tokenInput.value) actionUrl.searchParams.set('token', tokenInput.value);
+                    if (emailInput && emailInput.value) actionUrl.searchParams.set('email', emailInput.value);
+                    form.action = actionUrl.pathname + (actionUrl.search ? actionUrl.search : '');
+                }
+            } catch (e) {
+                console.error('token autofill error', e);
+            }
         })();
     </script>
 </body>

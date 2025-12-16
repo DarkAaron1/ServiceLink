@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Http\Livewire;
+
+use Livewire\Component;
+use App\Models\Comanda;
+
+class CocinaOrders extends Component
+{
+    protected $listeners = [
+        'refreshOrders' => '$refresh',
+    ];
+
+    public function render()
+    {
+        $comandas = Comanda::with(['pedidos.item', 'mesa'])->orderBy('created_at', 'desc')->get();
+
+        $comandas->transform(function ($comanda) {
+            $detalles = $comanda->pedidos->groupBy(function ($p) {
+                return ($p->item_id ?? '0') . '|' . ($p->observaciones ?? '');
+            })->map(function ($group) {
+                $first = $group->first();
+                return (object) [
+                    'item' => $first->item ?? null,
+                    'cantidad' => $group->count(),
+                    'observaciones' => $first->observaciones ?? null,
+                    'estado' => $first->estado ?? ($first->estado_preparacion ?? 'pendiente'),
+                ];
+            })->values();
+
+            $comanda->detalles = $detalles;
+            return $comanda;
+        });
+
+        return view('livewire.cocina-orders', compact('comandas'));
+    }
+
+    // Actualizar estado a 'en_preparacion'
+    public function markPreparing($comandaId)
+    {
+        $c = Comanda::find($comandaId);
+        if (! $c) return;
+        $c->estado = 'en_preparacion';
+        $c->save();
+        $this->dispatch('refreshOrders');
+    }
+
+    // Actualizar estado a 'listo'
+    public function markReady($comandaId)
+    {
+        $c = Comanda::find($comandaId);
+        if (! $c) return;
+        $c->estado = 'listo';
+        $c->save();
+        $this->dispatch('refreshOrders');
+    }
+}
