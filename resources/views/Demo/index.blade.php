@@ -13,54 +13,7 @@
 <script src="{{ asset('index.js') }}"></script>
     <div class="container">
         <!-- Sidebar Section -->
-        <aside>
-            <div class="toggle">
-                <div class="logo">
-                    <img src="{{ asset('favicon.ico') }}">
-                    <h2>Service<span class="primary">Link</span></h2>
-                </div>
-                <div class="close" id="close-btn">
-                    <span class="material-icons-sharp">
-                        close
-                    </span>
-                </div>
-            </div>
-
-            <div class="sidebar">
-                <a href="{{ route('demo.index') }}">
-                    <span class="material-icons-sharp">dashboard</span>
-                    <h3>Dashboard</h3>
-                </a>
-                <a href="{{ route('empleados.index') }}">
-                    <span class="material-icons-sharp">person_outline</span>
-                    <h3>Colaboradores</h3>
-                </a>
-                <a href="{{ route('comandas.index') }}">
-                    <span class="material-icons-sharp">receipt_long</span>
-                    <h3>Comandas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">insights</span>
-                    <h3>Estadísticas</h3>
-                </a>
-                <a href="{{ route('cocina.index') }}" class="active">
-                    <span class="material-icons-sharp">restaurant</span>
-                    <h3>Cocina</h3>
-                </a>
-                <a href="{{ route('items_menu.index') }}">
-                    <span class="material-icons-sharp">inventory</span>
-                    <h3>Menú</h3>
-                </a>
-                <a href="{{ route('mesas.index') }}">
-                    <span class="material-icons-sharp">table_restaurant</span>
-                    <h3>Mesas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">logout</span>
-                    <h3>Logout</h3>
-                </a>
-            </div>
-        </aside>
+        @include('partials.sidebar')
         <!-- End of Sidebar Section -->
 
         <!-- Main Content -->

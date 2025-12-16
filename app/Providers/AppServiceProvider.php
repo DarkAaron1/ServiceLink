@@ -24,5 +24,11 @@ class AppServiceProvider extends ServiceProvider
         if (class_exists(Livewire::class)) {
             Livewire::component('cocina-orders', \App\Http\Livewire\CocinaOrders::class);
         }
+
+        // Alias middleware for role-based access control
+        if ($this->app->runningInConsole() === false) {
+            $router = $this->app['router'];
+            $router->aliasMiddleware('role', \App\Http\Middleware\RequireRole::class);
+        }
     }
 }

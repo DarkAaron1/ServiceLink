@@ -40,59 +40,13 @@
 <script src="{{ asset('index.js') }}"></script>
 <div class="container">
         <!-- Sidebar Section -->
-        <aside>
-            <div class="toggle">
-                <div class="logo">
-                    <img src="{{ asset('favicon.ico') }}">
-                    <h2>Service<span class="primary">Link</span></h2>
-                </div>
-                <div class="close" id="close-btn">
-                    <span class="material-icons-sharp">
-                        close
-                    </span>
-                </div>
-            </div>
-
-            <div class="sidebar">
-                <a href="{{ route('demo.index') }}">
-                    <span class="material-icons-sharp">dashboard</span>
-                    <h3>Dashboard</h3>
-                </a>
-                <a href="{{ route('empleados.index') }}">
-                    <span class="material-icons-sharp">person_outline</span>
-                    <h3>Colaboradores</h3>
-                </a>
-                <a href="{{ route('comandas.index') }}">
-                    <span class="material-icons-sharp">receipt_long</span>
-                    <h3>Comandas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">insights</span>
-                    <h3>Estadísticas</h3>
-                </a>
-                <a href="{{ route('cocina.index') }}" class="active">
-                    <span class="material-icons-sharp">restaurant</span>
-                    <h3>Cocina</h3>
-                </a>
-                <a href="{{ route('items_menu.index') }}">
-                    <span class="material-icons-sharp">inventory</span>
-                    <h3>Menú</h3>
-                </a>
-                <a href="{{ route('mesas.index') }}">
-                    <span class="material-icons-sharp">table_restaurant</span>
-                    <h3>Mesas</h3>
-                </a>
-                <a href="#">
-                    <span class="material-icons-sharp">logout</span>
-                    <h3>Logout</h3>
-                </a>
-            </div>
-        </aside>
+        @include('partials.sidebar')
         <!-- End of Sidebar Section -->
 
         <!-- Main Content: reemplazado por gestión de Colaboradores -->
         <main>
             <h1>Gestión de Colaboradores</h1>
+            @php $role = session('empleado_cargo') ?? (session('usuario_nombre') ? 'Usuario' : null); @endphp
 
             @if(session('success'))
                 <div class="alert success">{{ session('success') }}</div>
@@ -100,10 +54,12 @@
 
             <div style="margin-bottom:2rem;" class="management-tables">
                 <div class="header" style="display:flex; align-items:center; justify-content:flex-end; gap:1rem;">
+                    @if(in_array($role, ['Administrador','Usuario']))
                     <button id="open-modal" class="btn-primary button-Add">
                         <span class="material-icons-sharp" style="font-size:1.3rem;">add</span>
                         Nuevo Colaborador
                     </button>
+                    @endif
                 </div>
 
                 <div class="colaboradores-grid">
@@ -125,9 +81,11 @@
                                     <button class="mesa-btn edit" type="button" data-employee='@json($e)'>
                                         <span class="material-icons-sharp">edit</span>
                                     </button>
+                                    @if(in_array($role, ['Administrador','Usuario']))
                                     <button class="mesa-btn delete" type="button" data-rut="{{ $e->rut }}">
                                         <span class="material-icons-sharp">delete</span>
                                     </button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach

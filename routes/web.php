@@ -42,7 +42,7 @@ Route::get('/welcome', function () {
 })->name('welcome');
 
 // pantalla de administración de usuarios
-Route::get('/admin', [UsuariosController::class, 'index'])->name('admin.index');
+Route::get('/admin', [UsuariosController::class, 'index'])->name('admin.index')->middleware('role:Administrador');
 
 // recursos mínimos para usuarios (crear, mostrar, actualizar estado)
 Route::post('/usuarios', [UsuariosController::class, 'store'])->name('usuarios.store');
