@@ -58,11 +58,14 @@ class CocinaOrders extends Component
         $c = Comanda::find($comandaId);
         if (! $c) return;
         $c->estado = 'listo';
-        $p = Pedido::find($comandaId);
-        if (! $p) return;
-        $p->estado = 'entregado';
-        $p->save();
         $c->save();
+        //todos los que tengan esa comanda_id
+        $p = Pedido::where('comanda_id', $comandaId)->get();
+        if (! $p) return;
+        foreach ($p as $pedido) {
+            $pedido->estado = 'entregado';
+            $pedido->save();
+        }
         $this->dispatch('refreshOrders');
     }
 }
