@@ -11,6 +11,7 @@ use App\Http\Controllers\LoginController; // agregado
 use App\Http\Controllers\DashboardController; // agregado
 use App\Http\Controllers\EmpleadoController; // <-- agregado
 use App\Http\Controllers\RestauranteController; // <-- agregado
+use App\Http\Controllers\SetPasswordController;
 use App\Http\Controllers\ComandaController;
 use App\Mail\MiPrimerEmail;
 use Illuminate\Support\Facades\Mail;
@@ -28,6 +29,16 @@ Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [UsuarioController::class, 'create'])->name('register');
 // Cambiado el nombre de la ruta POST para evitar conflicto con 'usuarios.store'
 Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
+
+// Formulario para establecer contraseña después del registro
+Route::get('/set-password', [SetPasswordController::class, 'show'])->name('set-password');
+Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.post');
+
+// Página pública para solicitar restablecer contraseña (vista Demo)
+Route::get('/forgot-password', function () {
+    return view('demo.forget_password'); // asegúrate que resources/views/demo/forget_password.blade.php exista
+})->name('forgot-password');
+
 
 // ruta de bienvenida (a donde redirige el login)
 Route::get('/welcome', function () {

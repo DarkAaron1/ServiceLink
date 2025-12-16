@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Items_Categoria;
 use App\Models\Restaurante;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Models\Usuario;
+use Illuminate\Support\Facades\DB;
 
 
 class ItemsMenuController extends Controller
@@ -16,7 +18,7 @@ class ItemsMenuController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index( request $request)
+    public function index(Request $request)
     {
         // Intenta obtener el restaurante desde sesión/autenticación para el admin.
         $restauranteId = $this->getContextRestauranteId();
@@ -53,7 +55,37 @@ class ItemsMenuController extends Controller
             $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
         }
 
-        return view('Items_Menu.index', compact('itemsMenu', 'categorias'), compact('usuario', 'rolName'));
+        // añadir imagen_url para consumo en la vista
+        $itemsMenu->each(function ($it) {
+            $it->imagen_url = $this->resolveImageUrl($it->imagen);
+        });
+
+
+         // Si no hay sesión, redirigir al login
+        $rut = $request->session()->get('usuario_rut');
+        if (! $rut) {
+            return redirect()->route('login');
+        }
+
+        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
+        $usuario = Usuario::where('rut', $rut)->first();
+        if (! $usuario) {
+            $usuario = (object) [
+                'nombre' => $request->session()->get('usuario_nombre'),
+                'email' => $request->session()->get('usuario_email'),
+                'rol_id' => null,
+                'estado' => null,
+            ];
+        }
+
+        // Obtener nombre del rol si aplica
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
+
+
+        return view('Items_Menu.index', compact('itemsMenu', 'categorias','usuario', 'rolName'));
     }
 
     /**
@@ -76,6 +108,15 @@ class ItemsMenuController extends Controller
             }])
             ->get();
 
+        // añadir imagen_url a cada item dentro de cada categoría
+        $categorias->each(function ($cat) {
+            if ($cat->relationLoaded('items') && $cat->items) {
+                $cat->items->each(function ($it) {
+                    $it->imagen_url = $this->resolveImageUrl($it->imagen);
+                });
+            }
+        });
+
         return view('Items_Menu.ver_menu', compact('categorias', 'restaurante'));
     }
 
@@ -97,6 +138,11 @@ class ItemsMenuController extends Controller
         }
 
         $items = $query->get();
+
+        // exponer imagen_url en JSON
+        $items->each(function ($it) {
+            $it->imagen_url = $this->resolveImageUrl($it->imagen);
+        });
 
         return response()->json($items);
     }
@@ -143,7 +189,9 @@ class ItemsMenuController extends Controller
             'nombre' => 'required|string|max:255',
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
+            'imagen' => 'nullable|image|max:2048',
             'estado' => 'required|in:disponible,no_disponible'
+            
         ];
 
         if ($restauranteIdForValidation) {
@@ -161,7 +209,7 @@ class ItemsMenuController extends Controller
             $item->precio = $data['precio'];
             $item->categoria_id = $data['categoria_id'];
             $item->estado = $data['estado'];
-            // Asignar restaurante desde contexto (admin autenticado) para evitar hardcode
+
             $restauranteId = $this->getContextRestauranteId();
             if (! $restauranteId && $request->filled('restaurante_id')) {
                 $restauranteId = $request->input('restaurante_id');
@@ -172,7 +220,17 @@ class ItemsMenuController extends Controller
             }
 
             $item->restaurante_id = $restauranteId;
+
+            // manejar imagen (opcional)
+            if ($request->hasFile('imagen')) {
+                $path = $request->file('imagen')->store('items', 'public');
+                $item->imagen = $path; // ruta relativa en storage (ej: items/abcd.jpg)
+            }
+
             $item->save();
+
+            // añadir imagen_url antes de devolver
+            $item->imagen_url = $this->resolveImageUrl($item->imagen);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -200,6 +258,7 @@ class ItemsMenuController extends Controller
      */
     public function show(Items_Menu $items_Menu)
     {
+        $items_Menu->imagen_url = $this->resolveImageUrl($items_Menu->imagen);
         return response()->json($items_Menu->load('categoria'));
     }
 
@@ -208,6 +267,7 @@ class ItemsMenuController extends Controller
      */
     public function edit(Items_Menu $items_Menu)
     {
+        $items_Menu->imagen_url = $this->resolveImageUrl($items_Menu->imagen);
         return response()->json($items_Menu->load('categoria'));
     }
 
@@ -216,14 +276,14 @@ class ItemsMenuController extends Controller
      */
     public function update(Request $request, Items_Menu $items_Menu)
     {
-        // validar cambios en update: asegurar que la categoria pertenezca al restaurante de contexto
         $restauranteIdForValidation = $this->getContextRestauranteId();
 
         $rules = [
             'nombre' => 'required|string|max:255',
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
-            'estado' => 'required|in:disponible,no_disponible'
+            'estado' => 'required|in:disponible,no_disponible',
+            'imagen' => 'nullable|image|max:2048'
         ];
 
         if ($restauranteIdForValidation) {
@@ -240,7 +300,20 @@ class ItemsMenuController extends Controller
             $items_Menu->precio = $data['precio'];
             $items_Menu->categoria_id = $data['categoria_id'];
             $items_Menu->estado = $data['estado'];
+
+            // si se sube nueva imagen, eliminar la anterior (si está en storage 'public') y guardar la nueva
+            if ($request->hasFile('imagen')) {
+                if ($items_Menu->imagen && ! Str::startsWith($items_Menu->imagen, ['http://','https://','/'])) {
+                    Storage::disk('public')->delete($items_Menu->imagen);
+                }
+                $path = $request->file('imagen')->store('items', 'public');
+                $items_Menu->imagen = $path;
+            }
+
             $items_Menu->save();
+
+            // añadir imagen_url antes de devolver
+            $items_Menu->imagen_url = $this->resolveImageUrl($items_Menu->imagen);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -275,6 +348,11 @@ class ItemsMenuController extends Controller
                 throw new \Exception('No autorizado para eliminar este item');
             }
 
+            // borrar imagen almacenada en disk 'public' si corresponde
+            if ($items_menu->imagen && ! Str::startsWith($items_menu->imagen, ['http://','https://','/'])) {
+                Storage::disk('public')->delete($items_menu->imagen);
+            }
+
             $items_menu->delete();
 
             if (request()->wantsJson()) {
@@ -295,5 +373,17 @@ class ItemsMenuController extends Controller
             }
             return back()->with('error', 'Error al eliminar el item: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Resolve public URL for stored image or return original url if absolute or starts with '/'
+     */
+    protected function resolveImageUrl($path)
+    {
+        if (empty($path)) return null;
+        if (Str::startsWith($path, ['http://', 'https://', '/'])) {
+            return $path;
+        }
+        return Storage::url($path);
     }
 }

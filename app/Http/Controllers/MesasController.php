@@ -9,13 +9,12 @@ use Illuminate\Http\Request;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 
-
 class MesasController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index( Request $request)
+    public function index(Request $request)
     {
         // Si el admin tiene contexto de restaurante, listar solo sus mesas
         $restauranteId = null;
@@ -34,7 +33,8 @@ class MesasController extends Controller
             $mesas = Mesas::with('restaurante')->get();
         }
 
-        // Si no hay sesión, redirigir al login
+
+          // Si no hay sesión, redirigir al login
         $rut = $request->session()->get('usuario_rut');
         if (! $rut) {
             return redirect()->route('login');
@@ -57,7 +57,9 @@ class MesasController extends Controller
             $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
         }
 
-        return view('mesas.index', compact('mesas'),compact('usuario', 'rolName'));
+
+
+        return view('mesas.index', compact('mesas','usuario', 'rolName'));
     }
 
 
