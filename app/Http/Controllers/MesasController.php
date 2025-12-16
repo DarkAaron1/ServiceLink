@@ -9,13 +9,12 @@ use Illuminate\Http\Request;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 
-
 class MesasController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index( Request $request)
+    public function index(Request $request)
     {
         // Usar actor (Usuario o Empleado) para determinar acceso y restaurante
         $actor = $this->getActor($request);
@@ -35,7 +34,33 @@ class MesasController extends Controller
             $mesas = Mesas::with('restaurante')->get();
         }
 
-        return view('mesas.index', compact('mesas', 'usuario', 'rolName'));
+
+          // Si no hay sesión, redirigir al login
+        $rut = $request->session()->get('usuario_rut');
+        if (! $rut) {
+            return redirect()->route('login');
+        }
+
+        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
+        $usuario = Usuario::where('rut', $rut)->first();
+        if (! $usuario) {
+            $usuario = (object) [
+                'nombre' => $request->session()->get('usuario_nombre'),
+                'email' => $request->session()->get('usuario_email'),
+                'rol_id' => null,
+                'estado' => null,
+            ];
+        }
+
+        // Obtener nombre del rol si aplica
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
+
+
+
+        return view('mesas.index', compact('mesas','usuario', 'rolName'));
     }
 
 

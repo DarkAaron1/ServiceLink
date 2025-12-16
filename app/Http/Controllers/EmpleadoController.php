@@ -6,11 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Models\Usuario; // agregado
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MiPrimerEmail;
 use App\Mail\EmpleadoBienvenidaMail;
+use Illuminate\Support\Facades\Schema;
 
 class EmpleadoController extends Controller
 {
@@ -18,7 +20,7 @@ class EmpleadoController extends Controller
     public function index()
     {
         // Obtener empleados (simple listado)
-        $empleados = DB::table('empleados')->select('rut','nombre','apellido','email','fono','fecha_nacimiento','cargo','estado','restaurante_id')->get();
+        $empleados = DB::table('empleados')->select('rut', 'nombre', 'apellido', 'email', 'fono', 'fecha_nacimiento', 'cargo', 'estado', 'restaurante_id')->get();
 
         // Para selects en el modal
         $roles = DB::table('roles')->select('nombre')->get();
@@ -63,7 +65,7 @@ class EmpleadoController extends Controller
         }
 
         // Retornar la vista incluyendo usuario y rolName
-        return view('colaboradores.index', compact('empleados','roles','usuario','rolName'));
+        return view('colaboradores.index', compact('empleados', 'roles', 'usuario', 'rolName'));
     }
 
     // Almacenar nuevo empleado
@@ -74,14 +76,16 @@ class EmpleadoController extends Controller
         $rutNormalizado = $this->normalizarRUT($rutInput);
 
         $data = $request->validate([
-            'rut' => ['required','string','max:50'],
-            'nombre' => ['required','string','max:100'],
-            'apellido' => ['required','string','max:100'],
-            'fecha_nacimiento' => ['required','date'],
-            'fono' => ['required','numeric'],
-            'email' => ['required','email','max:255','unique:empleados,email'],
-            'cargo' => ['required','string','exists:roles,nombre'],
-            'estado' => ['sometimes','in:activo,inactivo'],
+            'rut' => ['required', 'string', 'max:50'],
+            // nombres solo letras y espacios (unicode)
+            'nombre' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
+            'apellido' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
+            'fecha_nacimiento' => ['required', 'date'],
+            // teléfono solo dígitos
+            'fono' => ['required', 'regex:/^[0-9]+$/', 'max:15'],
+            'email' => ['required', 'email', 'max:255', 'unique:empleados,email'],
+            'cargo' => ['required', 'string', 'exists:roles,nombre'],
+            'estado' => ['sometimes', 'in:activo,inactivo'],
         ]);
 
         // Validar que el RUT no exista (normalizado)
@@ -104,7 +108,7 @@ class EmpleadoController extends Controller
                 $restaurante = DB::table('restaurantes')
                     ->where('rut_admin', $rutSesion)
                     ->first();
-                
+
                 if ($restaurante) {
                     $restauranteId = $restaurante->id;
                 } else {
@@ -132,32 +136,32 @@ class EmpleadoController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            // 
+            // INICIO ENVÍO DE CORREO (Después de la inserción exitosa)
+            // 
+
+            $datosCorreo = [
+                'nombre'   => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'email'    => $data['email'],
+            ];
+
+            // 💡 Usamos try/catch local para que un fallo en el correo NO detenga la creación del empleado
+            try {
+                Mail::to($datosCorreo['email'])->send(new EmpleadoBienvenidaMail($datosCorreo));
+            } catch (Exception $e) {
+                // Loguear el error para revisar luego. El usuario final no verá este error.
+                Log::error('Fallo el envío de bienvenida a ' . $datosCorreo['email'] . ': ' . $e->getMessage());
+                // Opcional: Podrías retornar un mensaje de éxito con advertencia.
+            }
+
+            // FIN ENVÍO DE CORREO
             // ==========================================================
-        // 📩 INICIO ENVÍO DE CORREO (Después de la inserción exitosa)
-        // ==========================================================
-        
-        $datosCorreo = [
-            'nombre'   => $data['nombre'],
-            'apellido' => $data['apellido'],
-            'email'    => $data['email'], 
-        ];
 
-        // 💡 Usamos try/catch local para que un fallo en el correo NO detenga la creación del empleado
-        try {
-            Mail::to($datosCorreo['email'])->send(new EmpleadoBienvenidaMail($datosCorreo));
         } catch (Exception $e) {
-            // Loguear el error para revisar luego. El usuario final no verá este error.
-            \Log::error('Fallo el envío de bienvenida a ' . $datosCorreo['email'] . ': ' . $e->getMessage());
-            // Opcional: Podrías retornar un mensaje de éxito con advertencia.
+            return back()->withInput()->withErrors(['db' => 'Error al crear empleado: ' . $e->getMessage()]);
         }
-
-        // 📩 FIN ENVÍO DE CORREO
-        // ==========================================================
-
-    } catch (Exception $e) { 
-        return back()->withInput()->withErrors(['db' => 'Error al crear empleado: '.$e->getMessage()]);
-    }
-        return redirect()->route('empleados.index')->with('success','Empleado creado correctamente.');
+        return redirect()->route('empleados.index')->with('success', 'Empleado creado correctamente.');
     }
 
     // Función auxiliar para normalizar RUT
@@ -165,13 +169,13 @@ class EmpleadoController extends Controller
     {
         // Remover espacios
         $rut = trim($rut);
-        
+
         // Convertir a mayúsculas
         $rut = strtoupper($rut);
-        
+
         // Remover puntos
         $rut = str_replace('.', '', $rut);
-        
+
         // Retornar en formato: XXXXXXXX-X
         return $rut;
     }
@@ -181,7 +185,7 @@ class EmpleadoController extends Controller
     {
         // Remover el guión y todo lo que viene después (dígito verificador)
         $partes = explode('-', $rut);
-        
+
         // Retornar solo los números sin el dígito verificador
         return $partes[0];
     }
@@ -192,13 +196,15 @@ class EmpleadoController extends Controller
         $rutNormalizado = $this->normalizarRUT($rut);
 
         $data = $request->validate([
-            'nombre' => ['required','string','max:100'],
-            'apellido' => ['required','string','max:100'],
-            'fecha_nacimiento' => ['required','date'],
-            'fono' => ['required','numeric'],
-            'email' => ['required','email','max:255','unique:empleados,email,'.$rutNormalizado.',rut'],
-            'cargo' => ['required','string','exists:roles,nombre'],
-            'estado' => ['sometimes','in:activo,inactivo'],
+            // nombres solo letras y espacios (unicode)
+            'nombre' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
+            'apellido' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
+            'fecha_nacimiento' => ['required', 'date'],
+            // teléfono solo dígitos
+            'fono' => ['required', 'regex:/^[0-9]+$/', 'max:15'],
+            'email' => ['required', 'email', 'max:255', 'unique:empleados,email,' . $rutNormalizado . ',rut'],
+            'cargo' => ['required', 'string', 'exists:roles,nombre'],
+            'estado' => ['sometimes', 'in:activo,inactivo'],
         ]);
 
         try {
@@ -215,39 +221,52 @@ class EmpleadoController extends Controller
                     'updated_at' => now(),
                 ]);
         } catch (Exception $e) {
-            return back()->withInput()->withErrors(['db' => 'Error al actualizar empleado: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['db' => 'Error al actualizar empleado: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('empleados.index')->with('success','Empleado actualizado correctamente.');
+        return redirect()->route('empleados.index')->with('success', 'Empleado actualizado correctamente.');
     }
 
     //función que permite eliminar un empleado
-    public function destroy($rut)
+    public function destroy(Request $request, $rut)
     {
         // Normalizar RUT: remover puntos y convertir a formato estándar
         $rutNormalizado = $this->normalizarRUT($rut);
 
         try {
-            DB::table('empleados')->where('rut', $rutNormalizado)->delete();
+            $deleted = DB::table('empleados')->where('rut', $rutNormalizado)->delete();
+            if (!$deleted) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Empleado no encontrado.'], 404);
+                }
+
+                return back()->withErrors(['db' => 'Empleado no encontrado.']);
+            }
         } catch (Exception $e) {
-            return back()->withErrors(['db' => 'Error al eliminar empleado: '.$e->getMessage()]);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error al eliminar empleado: ' . $e->getMessage()], 500);
+            }
+
+            return back()->withErrors(['db' => 'Error al eliminar empleado: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('empleados.index')->with('success','Empleado eliminado correctamente.');
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Empleado eliminado correctamente.'], 200);
+        }
+
+        return redirect()->route('empleados.index')->with('success', 'Empleado eliminado correctamente.');
     }
 
-        public function reestablecerContrasena($rut)
+    public function reestablecerContrasena($rut)
     {
-        // 1. Normalización (asegúrate de tener esta lógica o limpiar el rut aquí)
-        // Si no tienes la función normalizarRUT, usa: str_replace(['.', '-'], '', $rut);
-        $rutNormalizado = $this->normalizarRUT($rut); 
-        
+        // 1. Normalizar RUT
+        $rutNormalizado = $this->normalizarRUT($rut);
+
         // Extraemos pass (ej. 12345678)
-        // Si no tienes la función, usa: substr($rutNormalizado, 0, -1);
-        $passwordRUT = $this->extraerPasswordRUT($rutNormalizado); 
+        $passwordRUT = $this->extraerPasswordRUT($rutNormalizado);
 
         // 2. Buscar empleado
-        $empleado = \DB::table('empleados')->where('rut', $rutNormalizado)->first();
+        $empleado = DB::table('empleados')->where('rut', $rutNormalizado)->first();
 
         if (!$empleado) {
             // Respuesta JSON de error 404
@@ -255,11 +274,45 @@ class EmpleadoController extends Controller
         }
 
         try {
+            // Si existe la tabla de tokens, generamos un token y enviamos enlace
+            if (Schema::hasTable('password_set_tokens')) {
+                $token = bin2hex(random_bytes(32));
+
+                try {
+                    DB::table('password_set_tokens')->insert([
+                        'email' => $empleado->email,
+                        'type' => 'empleado',
+                        'token' => $token,
+                        'expires_at' => now()->addHours(24),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                } catch (Exception $e) {
+                    // Si la inserción falla, continúa con el flujo antiguo
+                }
+
+                $link = route('set-password', ['token' => $token]);
+
+                $datosCorreo = [
+                    'nombre' => $empleado->nombre,
+                    'apellido' => $empleado->apellido,
+                    'email' => $empleado->email,
+                    'link' => $link,
+                ];
+
+                Mail::to($empleado->email)->send(new MiPrimerEmail($datosCorreo));
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Se envió un correo con un enlace para establecer la contraseña.'
+                ], 200);
+            }
+
             // 3. Actualizar DB
-            \DB::table('empleados')
+            DB::table('empleados')
                 ->where('rut', $rutNormalizado)
                 ->update([
-                    'password' => \Hash::make($passwordRUT),
+                    'password' => Hash::make($passwordRUT),
                     'updated_at' => now(),
                 ]);
 
@@ -270,21 +323,19 @@ class EmpleadoController extends Controller
                 'email'    => $empleado->email // o $empleado->email según tu DB
             ];
 
-            \Mail::to($empleado->email)->send(new MiPrimerEmail($datosCorreo));
+            Mail::to($empleado->email)->send(new MiPrimerEmail($datosCorreo));
 
             // 5. RESPUESTA EXITOSA JSON
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Contraseña restablecida y correo enviado.'
             ], 200);
-
         } catch (Exception $e) {
             // Respuesta JSON de error servidor 500
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Error interno: ' . $e->getMessage()
             ], 500);
         }
     }
-    
 }

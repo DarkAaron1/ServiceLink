@@ -32,6 +32,11 @@
 
             <div style="margin-bottom:2rem;" class="management-tables ">
                 <div class="header" style="display:flex; align-items:center; justify-content:flex-end; gap:1rem;">
+                    <button class="button-volver" onclick="window.history.back()">
+                        <span class="material-icons-sharp">arrow_back</span>
+                        Volver
+                    </button>
+
                     {{-- Botón para crear nuevas categorias --}}
                     @if(in_array($role, ['Administrador','Usuario','Empleado']))
                     <button id="new-category-btn" class="btn-primary button-Add" onclick="openNewCategory()">
@@ -60,12 +65,13 @@
                                             <span class="material-icons-sharp">edit</span>
                                             Editar
                                         </button>
-                                        @if(in_array($role, ['Administrador','Usuario']))
+                                          @if(in_array($role, ['Administrador','Usuario']))
                                             <form method="POST" action="{{ url('/items_categorias/' . $cat->id) }}"
                                             style="margin:0;" class="delete-cat-form">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button" data-id="{{ $cat->id }}" data-name="{{ addslashes($cat->nombre) }}" class="delete-btn">
+                                            <button type="button" data-id="{{ $cat->id }}"
+                                                data-name="{{ addslashes($cat->nombre) }}" class="delete-btn">
                                                 <span class="material-icons-sharp">delete</span>
                                                 Eliminar
                                             </button>
@@ -94,13 +100,13 @@
                             @csrf
                             <div class="form-group">
                                 <div class="input-group">
-                                    <label for="add-nombre">Nombre</label>
+                                    <label for="add-nombre" class="label-dark">Nombre</label>
                                     <input id="add-nombre" name="nombre" required placeholder="Ej: Entradas"
                                         autocomplete="off"
                                         style="padding:0.6rem; border:1px solid #e2e8f0; border-radius:6px;">
                                 </div>
                                 <div class="input-group">
-                                    <label for="add-descripcion">Descripción</label>
+                                    <label for="add-descripcion" class="label-dark">Descripción</label>
                                     <textarea id="add-descripcion" name="descripcion" rows="3" placeholder="Opcional"
                                         style="padding:0.6rem; border:1px solid #e2e8f0; border-radius:6px;"></textarea>
                                 </div>
@@ -116,25 +122,25 @@
                 <!-- Modal para editar categoría -->
                 <div id="categoria-edit-modal" class="mesa-modal" style="display:none;">
                     <div class="modal-content">
-                         <button id="close-modal">
+                        <button id="close-edit-modal" class="close-modal">
                             <span class="material-icons-sharp">close</span>
                         </button>
                         <div class="modal-header" style="margin-bottom:1rem;">
                             <span class="modal-icon material-icons-sharp">edit</span>
-                            <h2 style="margin:0; font-size:1.25rem;">Editar Categoría</h2>
+                            <h2 class="label-dark">Editar Categoría</h2>
                         </div>
                         <form id="cat-edit-form" method="POST" action="">
                             @csrf
                             <input type="hidden" name="_method" value="PATCH">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <label for="edit-nombre">Nombre</label>
+                                    <label for="edit-nombre" class="label-dark">Nombre</label>
                                     <input id="edit-nombre" name="nombre" required placeholder="Ej: Entradas"
                                         autocomplete="off"
                                         style="padding:0.6rem; border:1px solid #e2e8f0; border-radius:6px;">
                                 </div>
                                 <div class="input-group">
-                                    <label for="edit-descripcion">Descripción</label>
+                                    <label for="edit-descripcion" class="label-dark">Descripción</label>
                                     <textarea id="edit-descripcion" name="descripcion" rows="3" placeholder="Opcional"
                                         style="padding:0.6rem; border:1px solid #e2e8f0; border-radius:6px;"></textarea>
                                 </div>
@@ -152,16 +158,15 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
-                            <h2 style="margin:0;">Confirmar eliminación</h2>
+                            <h2 style="margin:0;" class="label-dark">Confirmar eliminación</h2>
                         </div>
                         <div style="padding:0.5rem 0 1rem 0;">
                             <p id="delete-confirm-message">¿Desea eliminar esta categoría?</p>
                         </div>
                         <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.2rem;">
                             <button type="button" id="delete-cancel" class="button-Add edit-btn">Cancelar</button>
-                            @if(in_array($role, ['Administrador','Usuario']))
-                            <button type="button" id="delete-confirm-yes" class="button-Add delete-btn" >Eliminar</button>
-                            @endif
+                            <button type="button" id="delete-confirm-yes"
+                                class="button-Add delete-btn">Eliminar</button>
                         </div>
                     </div>
                 </div>
@@ -247,45 +252,56 @@
                     fd.append('_token', token);
 
                     fetch('/items_categorias/' + id, {
-                        method: 'POST',
-                        body: fd,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    })
-                    .then(r => r.json())
-                    .then(json => {
-                       
-                        if (json.in_use) {
-                            deleteConfirmMessage.textContent = `La categoría "${name}" está siendo usada por ${json.count} item(s). ¿Desea eliminarla de todos modos?`;
-                            // set final confirm handler
-                            deleteConfirmYes.onclick = function() {
-                                const fd2 = new FormData();
-                                fd2.append('_method', 'DELETE');
-                                fd2.append('_token', token);
-                                fd2.append('confirm', '1');
+                            method: 'POST',
+                            body: fd,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(r => r.json())
+                        .then(json => {
 
-                                fetch('/items_categorias/' + id, {
-                                    method: 'POST',
-                                    body: fd2,
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                })
-                                .then(r2 => r2.json())
-                                .then(j2 => {
-                                    if (j2 && j2.success) {
-                                        location.reload();
-                                    } else {
-                                        alert('Error al eliminar la categoría');
-                                    }
-                                })
-                                .catch(err => { console.error(err); alert('Error al eliminar la categoría'); });
-                            };
-                        } else if (json.success) {
-                            location.reload();
-                        } else {
-                            // fallback
-                            location.reload();
-                        }
-                    })
-                    .catch(err => { console.error(err); alert('Error al eliminar la categoría'); });
+                            if (json.in_use) {
+                                deleteConfirmMessage.textContent =
+                                    `La categoría "${name}" está siendo usada por ${json.count} item(s). ¿Desea eliminarla de todos modos?`;
+                                // set final confirm handler
+                                deleteConfirmYes.onclick = function() {
+                                    const fd2 = new FormData();
+                                    fd2.append('_method', 'DELETE');
+                                    fd2.append('_token', token);
+                                    fd2.append('confirm', '1');
+
+                                    fetch('/items_categorias/' + id, {
+                                            method: 'POST',
+                                            body: fd2,
+                                            headers: {
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                            }
+                                        })
+                                        .then(r2 => r2.json())
+                                        .then(j2 => {
+                                            if (j2 && j2.success) {
+                                                location.reload();
+                                            } else {
+                                                alert('Error al eliminar la categoría');
+                                            }
+                                        })
+                                        .catch(err => {
+                                            console.error(err);
+                                            alert('Error al eliminar la categoría');
+                                        });
+                                };
+                            } else if (json.success) {
+                                location.reload();
+                            } else {
+                                // fallback
+                                location.reload();
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Error al eliminar la categoría');
+                        });
                 };
             });
         });
@@ -319,7 +335,9 @@
 
         if (closeEditBtn) closeEditBtn.addEventListener('click', hideEditModal);
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', hideEditModal);
-        if (editModal) editModal.addEventListener('click', function(e) { if (e.target === editModal) hideEditModal(); });
+        if (editModal) editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) hideEditModal();
+        });
 
         // submit edit form via AJAX
         if (catEditForm) {
@@ -331,28 +349,33 @@
                 const token = document.querySelector('meta[name="csrf-token"]').content;
 
                 fetch(action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(r => r.json())
-                .then(json => {
-                    if (json && json.success) {
-                        // update card in DOM
-                        const cat = json.data;
-                        const card = document.querySelector(`.menu-card[data-id="${cat.id}"]`);
-                        if (card) {
-                            const h3 = card.querySelector('.card-header h3') || card.querySelector('h3');
-                            if (h3) h3.textContent = cat.nombre;
-                            const desc = card.querySelector('.description');
-                            if (desc) desc.textContent = cat.descripcion || 'Sin descripción';
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
-                        hideEditModal();
-                    } else {
-                        alert(json.message || 'Error al actualizar la categoría');
-                    }
-                })
-                .catch(err => { console.error(err); alert('Error al actualizar la categoría'); });
+                    })
+                    .then(r => r.json())
+                    .then(json => {
+                        if (json && json.success) {
+                            // update card in DOM
+                            const cat = json.data;
+                            const card = document.querySelector(`.menu-card[data-id="${cat.id}"]`);
+                            if (card) {
+                                const h3 = card.querySelector('.card-header h3') || card.querySelector('h3');
+                                if (h3) h3.textContent = cat.nombre;
+                                const desc = card.querySelector('.description');
+                                if (desc) desc.textContent = cat.descripcion || 'Sin descripción';
+                            }
+                            hideEditModal();
+                        } else {
+                            alert(json.message || 'Error al actualizar la categoría');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Error al actualizar la categoría');
+                    });
             });
         }
     </script>

@@ -93,8 +93,7 @@
 
             <!-- Modal para nueva mesa -->
             <div>
-                <div id="mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true"
-                    tabindex="-1">
+                <div id="mesa-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1">
                     <div class="modal-content">
                         <button id="close-modal">
                             <span class="material-icons-sharp">close</span>
@@ -187,7 +186,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <span class="modal-icon material-icons-sharp" style="color:#f59e0b;">warning</span>
-                        <h2 style="margin:0;">Confirmar eliminación</h2>
+                        <h2 style="margin:0;" class="label-dark">Confirmar eliminación</h2>
                     </div>
                     <div style="padding:0.5rem 0 1rem 0;">
                         <p id="delete-mesa-message">¿Desea eliminar esta mesa?</p>
@@ -543,5 +542,4 @@
         })();
     </script>
 </body>
-
 </html>
