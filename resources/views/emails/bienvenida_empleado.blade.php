@@ -10,8 +10,8 @@ Tu cuenta ha sido creada con éxito. Para tu primer acceso, utiliza las siguient
 
 Es obligatorio que, una vez dentro del sistema, procedas a **cambiar tu contraseña de inmediato** por seguridad.
 
-@component('mail::button', ['url' => route('login')])
-Ir al Sistema (Login)
+@component('mail::button', ['url' => route('login.empleado')])
+Ir al Sistema (Login Empleado)
 @endcomponent
 
 Si tienes algún problema para acceder, contacta con el administrador.

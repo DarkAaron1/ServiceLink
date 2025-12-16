@@ -8,7 +8,7 @@ Tal como solicitaste, tu contraseña temporal es tu **RUT (sin puntos ni dígito
 
 Por favor, ingresa al siguiente enlace para acceder y te recomendamos cambiarla nuevamente en tu perfil.
 
-@component('mail::button', ['url' => route('login')]) {{-- Usa route() en lugar de http://127.0... --}}
+@component('mail::button', ['url' => route('login.usuario')]) {{-- Usa route() en lugar de http://127.0... --}}
 Ir al Login
 @endcomponent
 

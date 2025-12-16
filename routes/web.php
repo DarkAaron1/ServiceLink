@@ -17,10 +17,17 @@ use Illuminate\Support\Facades\Mail;
 
 Route::get('/index', [DashboardController::class, 'index'])->name('demo.index');
 
-// Reemplazado: mostrar login mediante controlador
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-// Procesar login
-Route::post('/login', [LoginController::class, 'authenticate'])->name('login.perform');
+// Pantalla de selección: elegir login para Usuario o Empleado
+Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+
+// Login para Usuario
+Route::get('/login/usuario', [LoginController::class, 'showUsuarioLogin'])->name('login.usuario');
+Route::post('/login/usuario', [LoginController::class, 'authenticateUsuario'])->name('login.usuario.perform');
+
+// Login para Empleado
+Route::get('/login/empleado', [LoginController::class, 'showEmpleadoLogin'])->name('login.empleado');
+Route::post('/login/empleado', [LoginController::class, 'authenticateEmpleado'])->name('login.empleado.perform');
+
 // Logout (GET para compatibilidad con enlaces simples en UI)
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 

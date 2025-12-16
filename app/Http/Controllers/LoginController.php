@@ -5,17 +5,30 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Usuario;
+use App\Models\Empleado;
 
 class LoginController extends Controller
 {
-    // Mostrar formulario de login
+    // Mostrar pantalla de selección de tipo de login
     public function showLoginForm()
+    {
+        return view('auth.login_select');
+    }
+
+    // Mostrar formulario de login para Usuario
+    public function showUsuarioLogin()
     {
         return view('Demo.login');
     }
 
-    // Procesar intento de login
-    public function authenticate(Request $request)
+    // Mostrar formulario de login para Empleado
+    public function showEmpleadoLogin()
+    {
+        return view('auth.login_empleado');
+    }
+
+    // Procesar intento de login para Usuario
+    public function authenticateUsuario(Request $request)
     {
         $credentials = $request->validate([
             'email' => ['required','email'],
@@ -38,10 +51,35 @@ class LoginController extends Controller
         return redirect()->route('demo.index');
     }
 
-    // Cerrar sesión
+    // Procesar intento de login para Empleado
+    public function authenticateEmpleado(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required','email'],
+            'password' => ['required','string'],
+        ]);
+
+        $empleado = \App\Models\Empleado::where('email', $credentials['email'])->first();
+
+        if (! $empleado || ! Hash::check($credentials['password'], $empleado->password)) {
+            return back()->withInput($request->only('email'))->withErrors(['auth' => 'Credenciales inválidas']);
+        }
+
+        // Iniciar sesión de forma simple guardando identificador del empleado en sesión
+        $request->session()->regenerate();
+        $request->session()->put('empleado_rut', $empleado->rut);
+        $request->session()->put('empleado_nombre', $empleado->nombre);
+        $request->session()->put('empleado_email', $empleado->email);
+        $request->session()->put('empleado_cargo', $empleado->cargo ?? '');
+
+        // redirigir a la vista Demo.index (puedes cambiar a un dashboard de empleado)
+        return redirect()->route('demo.index');
+    }
+
+    // Cerrar sesión (limpia sesiones de usuario y empleado)
     public function logout(Request $request)
     {
-        $request->session()->forget(['usuario_rut','usuario_nombre','usuario_email']);
+        $request->session()->forget(['usuario_rut','usuario_nombre','usuario_email','empleado_rut','empleado_nombre','empleado_email','empleado_cargo']);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

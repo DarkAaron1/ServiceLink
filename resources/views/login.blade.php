@@ -89,7 +89,7 @@
 <body>
     <div class="glass-container">
         <h2>Iniciar Sesión</h2>
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('login.usuario.perform') }}">
             @csrf
             <div class="form-group">
                 <label for="email">Correo electrónico</label>
