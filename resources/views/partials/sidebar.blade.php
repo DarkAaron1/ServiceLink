@@ -57,11 +57,11 @@
                 <span class="material-icons-sharp">inventory</span>
                 <h3>Menú</h3>
             </a>
-
+{{-- 
             <a href="{{ route('categorias.index') }}" class="{{ request()->routeIs('categorias*') ? 'active' : '' }}">
                 <span class="material-icons-sharp">label</span>
                 <h3>Categorías</h3>
-            </a>
+            </a> --}}
 
             <a href="{{ route('mesas.index') }}" class="{{ request()->routeIs('mesas*') ? 'active' : '' }}">
                 <span class="material-icons-sharp">table_restaurant</span>

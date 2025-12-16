@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
 use App\Models\Restaurante;
 use App\Events\NuevoPedidoCreado;
+use Illuminate\Support\Facades\Log;
 
 class ComandaController extends Controller
 {
@@ -79,7 +80,7 @@ private function normalizarRut(?string $rut): ?string
     public function store(Request $request)
     {
         // 1. Depuración y Validación
-        \Log::info('Inicio ComandaController@store', $request->all());
+        Log::info('Inicio ComandaController@store', $request->all());
 
         $datosValidados = $request->validate([
             'mesa_id' => 'required|exists:mesas,id', // 'mesas' es la tabla en BD
@@ -139,10 +140,10 @@ private function normalizarRut(?string $rut): ?string
             }
 
             DB::commit();
-            \Log::info('Comanda creada ID: ' . $comanda->id);
+            Log::info('Comanda creada ID: ' . $comanda->id);
 
             // Información de diagnóstico: comprobar si broadcasting está activo
-            \Log::info('Broadcast driver configured: ' . config('broadcasting.default'));
+            Log::info('Broadcast driver configured: ' . config('broadcasting.default'));
 
             if ($request->wantsJson()) {
                 return response()->json(['success' => true, 'comanda' => $comanda->load('pedidos')], 201);
@@ -152,7 +153,7 @@ private function normalizarRut(?string $rut): ?string
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Log::error('Error FATAL en Store:', ['error' => $e->getMessage()]);
+            Log::error('Error FATAL en Store:', ['error' => $e->getMessage()]);
             
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'error' => $e->getMessage()], 500);

@@ -75,6 +75,11 @@ class EmpleadoController extends Controller
         $rutInput = $request->input('rut');
         $rutNormalizado = $this->normalizarRUT($rutInput);
 
+        // Validar formato y dígito verificador del RUT antes de continuar
+        if (! $this->validarRUT($rutNormalizado)) {
+            return back()->withInput()->withErrors(['rut' => 'RUT inválido']);
+        }
+
         $data = $request->validate([
             'rut' => ['required', 'string', 'max:50'],
             // nombres solo letras y espacios (unicode)
@@ -83,7 +88,8 @@ class EmpleadoController extends Controller
             'fecha_nacimiento' => ['required', 'date'],
             // teléfono solo dígitos
             'fono' => ['required', 'regex:/^[0-9]+$/', 'max:15'],
-            'email' => ['required', 'email', 'max:255', 'unique:empleados,email'],
+            // Validación RFC y DNS para asegurar que el dominio existe
+            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:empleados,email'],
             'cargo' => ['required', 'string', 'exists:roles,nombre'],
             'estado' => ['sometimes', 'in:activo,inactivo'],
         ]);
@@ -95,6 +101,17 @@ class EmpleadoController extends Controller
 
         if ($rutExistente) {
             return back()->withInput()->withErrors(['rut' => 'El RUT ya está registrado']);
+        }
+
+        // Verificar que el dominio del correo tenga registros MX o A (existencia del dominio)
+        $emailDomain = substr(strrchr($data['email'], '@'), 1);
+        if ($emailDomain === false || (!checkdnsrr($emailDomain, 'MX') && !checkdnsrr($emailDomain, 'A'))) {
+            return back()->withInput()->withErrors(['email' => 'Dominio del correo no válido o no existe.']);
+        }
+
+        // Intentar verificar existencia del buzón vía SMTP (RCPT TO)
+        if (! $this->verificarEmailSMTP($data['email'])) {
+            return back()->withInput()->withErrors(['email' => 'Email inválido o no existente.']);
         }
 
         try {
@@ -180,6 +197,123 @@ class EmpleadoController extends Controller
         return $rut;
     }
 
+    // Función para validar RUT chileno (dígito verificador)
+    private function validarRUT($rut)
+    {
+        if (!is_string($rut) || empty($rut)) return false;
+
+        // Normalizar entrada: quitar espacios y puntos, mayúsculas
+        $r = strtoupper(trim($rut));
+        $r = str_replace('.', '', $r);
+
+        // Debe contener un guión separando cuerpo y dígito verificador
+        if (strpos($r, '-') === false) return false;
+
+        [$cuerpo, $dv] = explode('-', $r);
+
+        if (!ctype_digit($cuerpo)) return false;
+
+        $reversed = array_reverse(str_split($cuerpo));
+        $factor = 2;
+        $suma = 0;
+
+        foreach ($reversed as $digit) {
+            $suma += intval($digit) * $factor;
+            $factor++;
+            if ($factor > 7) $factor = 2;
+        }
+
+        $resto = $suma % 11;
+        $calculo = 11 - $resto;
+
+        if ($calculo == 11) {
+            $dvEsperado = '0';
+        } elseif ($calculo == 10) {
+            $dvEsperado = 'K';
+        } else {
+            $dvEsperado = (string)$calculo;
+        }
+
+        return strtoupper($dv) === $dvEsperado;
+    }
+
+    /**
+     * Intento básico de verificación SMTP: conecta al MX del dominio y solicita RCPT TO
+     * Nota: Muchos servidores rechazan o no responden a estas comprobaciones; puede fallar por políticas del proveedor.
+     */
+    private function verificarEmailSMTP($email)
+    {
+        // Separar usuario y dominio
+        if (!is_string($email) || strpos($email, '@') === false) return false;
+        [$user, $domain] = explode('@', $email, 2);
+
+        // Obtener registros MX
+        $mxhosts = [];
+        if (function_exists('dns_get_record')) {
+            $mx = @dns_get_record($domain, DNS_MX);
+            if ($mx && is_array($mx)) {
+                // ordenar por prioridad
+                usort($mx, function($a, $b){ return ($a['pri'] ?? 0) - ($b['pri'] ?? 0); });
+                foreach ($mx as $m) {
+                    if (!empty($m['target'])) $mxhosts[] = $m['target'];
+                }
+            }
+        }
+
+        // Si no hay MX, usar el propio dominio como fallback
+        if (empty($mxhosts)) $mxhosts[] = $domain;
+
+        $timeout = 5; // segundos
+
+        foreach ($mxhosts as $host) {
+            // Abrir conexión SMTP (puerto 25)
+            $errno = 0; $errstr = '';
+            $fp = @stream_socket_client("tcp://{$host}:25", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT);
+            if (! $fp) continue;
+
+            stream_set_timeout($fp, $timeout);
+
+            // Leer greeting
+            $res = fgets($fp, 512);
+
+            // Enviar EHLO
+            $local = 'localhost';
+            fwrite($fp, "EHLO {$local}\r\n");
+            $res = fgets($fp, 512);
+            // consumir posibles líneas adicionales
+            while ($res && substr($res,3,1) === '-') { $res = fgets($fp,512); }
+
+            // Enviar MAIL FROM con dirección no vacía
+            $from = 'postmaster@' . $domain;
+            fwrite($fp, "MAIL FROM:<{$from}>\r\n");
+            $res = fgets($fp, 512);
+
+            // Enviar RCPT TO
+            fwrite($fp, "RCPT TO:<{$email}>\r\n");
+            $res = fgets($fp, 512);
+
+            // Cerrar sesión
+            fwrite($fp, "QUIT\r\n");
+            fclose($fp);
+
+            if (! $res) continue;
+
+            // Aceptado si código 250 o 251
+            $code = intval(substr(trim($res),0,3));
+            if (in_array($code, [250, 251])) {
+                return true;
+            }
+            // Si servidor respondió 550 (no existe) o 551/553, consideramos inválido
+            if (in_array($code, [550,551,553])) {
+                return false;
+            }
+            // Otros códigos: intentar siguiente MX
+        }
+
+        // Si no pudo confirmar aceptación, devolver false por defecto
+        return false;
+    }
+
     // Función para extraer la contraseña (números sin dígito verificador)
     private function extraerPasswordRUT($rut)
     {
@@ -202,10 +336,21 @@ class EmpleadoController extends Controller
             'fecha_nacimiento' => ['required', 'date'],
             // teléfono solo dígitos
             'fono' => ['required', 'regex:/^[0-9]+$/', 'max:15'],
-            'email' => ['required', 'email', 'max:255', 'unique:empleados,email,' . $rutNormalizado . ',rut'],
+            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:empleados,email,' . $rutNormalizado . ',rut'],
             'cargo' => ['required', 'string', 'exists:roles,nombre'],
             'estado' => ['sometimes', 'in:activo,inactivo'],
         ]);
+
+        // Verificar que el dominio del correo tenga registros MX o A (existencia del dominio)
+        $emailDomain = substr(strrchr($data['email'], '@'), 1);
+        if ($emailDomain === false || (!checkdnsrr($emailDomain, 'MX') && !checkdnsrr($emailDomain, 'A'))) {
+            return back()->withInput()->withErrors(['email' => 'Dominio del correo no válido o no existe.']);
+        }
+
+        // Intentar verificar existencia del buzón vía SMTP (RCPT TO)
+        if (! $this->verificarEmailSMTP($data['email'])) {
+            return back()->withInput()->withErrors(['email' => 'No se pudo verificar el buzón de correo. Email inválido o no existente.']);
+        }
 
         try {
             DB::table('empleados')

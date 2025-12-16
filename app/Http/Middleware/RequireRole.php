@@ -13,6 +13,7 @@ class RequireRole
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {
+
         $session = $request->session();
 
         // Determine role: prefer empleado role if present, else if usuario is logged try to resolve the user's role name
@@ -33,7 +34,9 @@ class RequireRole
 
         // Not logged in: redirect to the appropriate login page based on intended role
         if (! $role) {
-            $allowed = array_map(function($r){ return strtolower(trim($r)); }, $roles ?: []);
+            $allowed = array_map(function ($r) {
+                return strtolower(trim($r));
+            }, $roles ?: []);
 
             // If the route expects a 'Usuario', send to usuario login, otherwise send to empleado login
             if (in_array('usuario', $allowed)) {
@@ -49,7 +52,9 @@ class RequireRole
         }
 
         // Normalize allowed roles
-        $allowed = array_map(function($r){ return strtolower(trim($r)); }, $roles ?: []);
+        $allowed = array_map(function ($r) {
+            return strtolower(trim($r));
+        }, $roles ?: []);
 
         if (in_array(strtolower(trim($role)), $allowed)) {
             return $next($request);

@@ -8,42 +8,122 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+
 
 class SetPasswordController extends Controller
 {
     public function show(Request $request)
     {
-        $token = $request->query('token');
+        $token = $request->route('token') ?? $request->query('token');
         $email = $request->query('email');
+
+        // Log what the server sees when rendering the form (temporal)
+        try {
+            Log::info('set-password.show', [
+                'token_param' => $request->route('token'),
+                'token_query' => $request->query('token'),
+                'computed_token' => $token,
+                'email_query' => $email,
+                'url' => $request->fullUrl()
+            ]);
+        } catch (\Exception $e) {
+            // ignore logging errors
+        }
+
+        // Caso: sin token
         if (! $token) {
-            // Si no viene token, permitir flujo por `email` (si viene en query)
             if ($email) {
-                return view('Demo.set_password', ['token' => null, 'email' => $email]);
+                // Si existe la tabla de tokens, intentar generar (o reutilizar) un token
+                try {
+                    if (Schema::hasTable('password_set_tokens')) {
+                        $existing = DB::table('password_set_tokens')
+                            ->where('email', $email)
+                            ->whereRaw('expires_at > ?', [now()])
+                            ->first();
+
+                        if ($existing) {
+                            $token = $existing->token;
+                        } else {
+                            $token = bin2hex(random_bytes(32));
+                            DB::table('password_set_tokens')->insert([
+                                'email' => $email,
+                                'type' => 'usuario',
+                                'token' => $token,
+                                'expires_at' => now()->addHours(24),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+
+                        // Redirigir a la misma ruta pero incluyendo el token en la ruta
+                        return redirect()->route('set-password', ['token' => $token, 'email' => $email]);
+                    }
+                } catch (\Exception $e) {
+                    // Si algo falla al generar el token, caer al render sin token
+                }
+
+                return view('Demo.set_password', [
+                    'token' => null,
+                    'email' => $email
+                ]);
             }
 
-            return redirect()->route('login')->withErrors(['token' => 'Token requerido.']);
+            return view('Demo.set_password', [
+                'token' => null,
+                'email' => null,
+                'error' => 'Token requerido.'
+            ]);
         }
 
         $row = DB::table('password_set_tokens')->where('token', $token)->first();
+
+        // Caso: token inválido o expirado
         if (! $row || Carbon::parse($row->expires_at)->lt(now())) {
-            return redirect()->route('login')->withErrors(['token' => 'Token inválido o expirado.']);
+            return view('Demo.set_password', [
+                'token' => null,
+                'email' => null,
+                'error' => 'Token inválido o expirado.'
+            ]);
         }
 
-        return view('Demo.set_password', ['token' => $token]);
+        // Caso OK
+        return view('Demo.set_password', [
+            'token' => $token,
+            'email' => $row->email ?? null
+        ]);
     }
 
     public function store(Request $request)
     {
+        // Aceptar token también desde la ruta o query si no viene en el body
+        $incomingToken = $request->input('token') ?? $request->route('token') ?? $request->query('token');
+        try {
+            Log::info('set-password.store.start', [
+                'incomingToken_before_merge' => $request->input('token'),
+                'route_token' => $request->route('token'),
+                'query_token' => $request->query('token'),
+                'full_url' => $request->fullUrl()
+            ]);
+        } catch (\Exception $e) {
+            // ignore
+        }
+        if ($incomingToken && ! $request->filled('token')) {
+            $request->merge(['token' => $incomingToken]);
+        }
+
         // Aceptamos dos flujos:
         // - token (envío por email)
-        // - rut (administrador estableciendo contraseña desde la UI)
+        // - email (administrador estableciendo contraseña desde la UI)
 
         $rules = [
             'password' => 'required|string|min:8|confirmed',
         ];
 
         // Validar token si viene
-        if ($request->filled('token')) {
+        if ($request->input('token')) {
             $rules['token'] = 'required|string';
         } else {
             // si no hay token, permitir email
@@ -60,19 +140,20 @@ class SetPasswordController extends Controller
                 }
 
                 $email = $row->email;
-                $type = $row->type; // 'usuario' o 'empleado'
 
-                if ($type === 'usuario') {
-                    $usuario = Usuario::where('email', $email)->first();
-                    if (! $usuario) return back()->withErrors(['email' => 'Usuario no encontrado.']);
-                    $usuario->password = $data['password']; // mutator hasheará
-                    $usuario->save();
-                } else {
-                    // actualizar empleado por email
+                // Primero intentar actualizar en `empleados` por email
+                $empleado = DB::table('empleados')->where('email', $email)->first();
+                if ($empleado) {
                     DB::table('empleados')->where('email', $email)->update([
                         'password' => Hash::make($data['password']),
                         'updated_at' => now(),
                     ]);
+                } else {
+                    // Si no existe empleado, intentar actualizar en usuarios
+                    $usuario = Usuario::where('email', $email)->first();
+                    if (! $usuario) return back()->withErrors(['email' => 'Registro no encontrado.']);
+                    $usuario->password = Hash::make($data['password']);
+                    $usuario->save();
                 }
 
                 // Invalidar token si existe la tabla
@@ -82,7 +163,7 @@ class SetPasswordController extends Controller
                     // ignorar si la tabla no existe
                 }
 
-                return redirect()->route('login')->with('success', 'Contraseña guardada correctamente. Ya puedes iniciar sesión.');
+                return view('Demo.set_password_success');
             } else {
                 // Flujo por email: actualizar el registro correspondiente al email proporcionado
                 $email = $data['email'];
@@ -100,7 +181,7 @@ class SetPasswordController extends Controller
                 // Intentar actualizar usuario por email
                 $usuario = Usuario::where('email', $email)->first();
                 if ($usuario) {
-                    $usuario->password = $data['password'];
+                    $usuario->password = Hash::make($data['password']);
                     $usuario->save();
                     return redirect()->route('admin.index')->with('success', 'Contraseña del usuario actualizada correctamente.');
                 }
