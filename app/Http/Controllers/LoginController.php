@@ -10,20 +10,33 @@ use App\Models\Empleado;
 class LoginController extends Controller
 {
     // Mostrar pantalla de selección de tipo de login
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
+        // Limpiar cualquier dato de autenticación previo (usuario o empleado)
+        $request->session()->forget(['usuario_rut','usuario_nombre','usuario_email','empleado_rut','empleado_nombre','empleado_email','empleado_cargo']);
+        // Renovar token CSRF para evitar reuso de formularios antiguos
+        $request->session()->regenerateToken();
+
         return view('auth.login_select');
     }
 
     // Mostrar formulario de login para Usuario
-    public function showUsuarioLogin()
+    public function showUsuarioLogin(Request $request)
     {
+        // Limpiar sesión de empleado por si había quedado algún dato
+        $request->session()->forget(['empleado_rut','empleado_nombre','empleado_email','empleado_cargo']);
+        $request->session()->regenerateToken();
+
         return view('Demo.login');
     }
 
     // Mostrar formulario de login para Empleado
-    public function showEmpleadoLogin()
+    public function showEmpleadoLogin(Request $request)
     {
+        // Limpiar sesión de usuario por si había quedado algún dato
+        $request->session()->forget(['usuario_rut','usuario_nombre','usuario_email']);
+        $request->session()->regenerateToken();
+
         return view('auth.login_empleado');
     }
 
