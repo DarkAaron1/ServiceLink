@@ -2,8 +2,11 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Pedido;
 use Livewire\Component;
 use App\Models\Comanda;
+use App\Models\Items_Menu;
+
 
 class CocinaOrders extends Component
 {
@@ -55,6 +58,10 @@ class CocinaOrders extends Component
         $c = Comanda::find($comandaId);
         if (! $c) return;
         $c->estado = 'listo';
+        $p = Pedido::find($comandaId);
+        if (! $p) return;
+        $p->estado = 'entregado';
+        $p->save();
         $c->save();
         $this->dispatch('refreshOrders');
     }

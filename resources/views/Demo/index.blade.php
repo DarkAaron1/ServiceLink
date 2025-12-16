@@ -25,7 +25,7 @@
                     <div class="status">
                         <div class="info">
                             <h3>Total Ingresos</h3>
-                            <h1>$65,024</h1>
+                            <h1>{{ $IngresosTotales }}</h1>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -41,7 +41,7 @@
                     <div class="status">
                         <div class="info">
                             <h3>Productos Vendidos</h3>
-                            <h1>24,981</h1>
+                            <h1>{{ $Solds }}</h1>
                         </div>
                         <div class="progresss">
                             <svg>
@@ -57,14 +57,13 @@
                     <div class="status">
                         <div class="info">
                             <h3>Producto Más Vendido</h3>
-                            <h1>Churrasco Italiano</h1>
+                            <h1>{{ $nameSoldProduct }}</h1>
                         </div>
                         <div class="progresss">
                             <svg>
                                 <circle cx="38" cy="38" r="36"></circle>
                             </svg>
-                            <div class="percentage">
-                                <p>1,500</p>
+                            <div class="percentage"></p>
                             </div>
                         </div>
                     </div>
@@ -74,33 +73,20 @@
 
             <!-- New Users Section -->
             <div class="new-users">
-                <h2>Usuarios Activos</h2>
+                <h2>Colaboradores</h2>
                 <div class="user-list">
-                    <div class="user">
-                        <!--img src="images/profile-2.jpg"-->
-                        <h2>Jack</h2>
-                        <p>54 Min Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/profile-3.jpg"-->
-                        <h2>Amir</h2>
-                        <p>3 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/profile-4.jpg"-->
-                        <h2>Ember</h2>
-                        <p>6 Hours Ago</p>
-                    </div>
-                    <div class="user">
-                        <!--img src="images/plus.png"-->
-                        <h2>More</h2>
-                        <p>New User</p>
-                    </div>
+                    @foreach ($empleados as $empleado)
+                        <div class="user">
+                            <!--img src="images/profile-2.jpg"-->
+                            <h2>{{ $empleado->nombre }} {{ $empleado->apellido }}</h2>
+                            <p>{{ $empleado->cargo ?? 'N/A' }}</p>
+                        </div>
+                    @endforeach
                 </div>
             </div>
             <!-- End of New Users Section -->
 
-            <!-- Recent Orders Table -->
+            <!-- Recent Orders Table
             <div class="recent-orders">
                 <h2>Ordenes Recientes</h2>
                 <table>
@@ -117,7 +103,7 @@
                 </table>
                 <a href="#">Show All</a>
             </div>
-            <!-- End of Recent Orders -->
+             End of Recent Orders -->
 
         </main>
         <!-- End of Main Content -->

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Empleado;
 use Illuminate\Http\Request;
 use App\Models\Usuario;
+use App\Models\Restaurante;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -13,6 +16,16 @@ class DashboardController extends Controller
         // Si hay sesión de Usuario o Empleado, mostrar dashboard; si no, redirigir al selector de login
         $usuario = null;
         $rolName = null;
+
+        $restauranteId = null;
+        $rutSesion = $request->session()->get('usuario_rut');
+        if ($rutSesion) {
+            $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+            if ($rest) $restauranteId = $rest->id;
+        } elseif (Auth::user() && isset(Auth::user()->rut)) {
+            $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
+            if ($rest) $restauranteId = $rest->id;
+        }
 
         // Preferir usuario (cliente) si existe
         $usuarioRut = $request->session()->get('usuario_rut');
@@ -51,6 +64,40 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        return view('Demo.index', compact('usuario', 'rolName'));
+        $mostSoldProduct = DB::table('pedidos')
+            ->select('item_id', DB::raw('COUNT(*) as total_sold'))
+            ->groupBy('item_id')
+            ->orderByDesc('total_sold')
+            ->limit(1)
+            ->value('item_id');
+        $nameSoldProduct = null;
+        if ($mostSoldProduct) {
+            $item = DB::table('items__menus')->where('id', $mostSoldProduct)->first();
+            if ($item) {
+                $nameSoldProduct = $item->nombre;
+            } else {
+                $nameSoldProduct = "Producto desconocido";
+            }
+        } else {
+            $nameSoldProduct = "Ningún producto vendido aún";
+        }
+
+        $ventas = DB::table('pedidos')->count();
+        if (! $ventas) {
+            $Solds = 'No hay Ventas Registradas';
+        }else{
+            $Solds = $ventas;
+        }
+
+        $ingresos = DB::table('pedidos')->sum('valor_item_ATM');
+        if (! $ingresos) {
+            $IngresosTotales = 'No hay Ingresos Registrados';
+        }else{
+            $IngresosTotales = '$ ' . number_format($ingresos, 0, ',', '.');
+        }
+
+        $empleados = Empleado::where('restaurante_id', $restauranteId)->get();
+
+        return view('Demo.index', compact('usuario', 'rolName', 'nameSoldProduct' , 'Solds', 'IngresosTotales', 'empleados'));
     }
 }
