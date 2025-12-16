@@ -60,6 +60,13 @@ class LoginController extends Controller
         $request->session()->put('usuario_nombre', $usuario->nombre);
         $request->session()->put('usuario_email', $usuario->email);
 
+        // Guardar nombre del rol del usuario (si aplica) para accesos/sidebars rápidos
+        $rolName = null;
+        if (! empty($usuario->rol_id)) {
+            $rolName = \Illuminate\Support\Facades\DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+        }
+        $request->session()->put('usuario_rol', $rolName);
+
         // redirigir a la vista Demo.index mediante la ruta nombrada 'demo.index'
         return redirect()->route('demo.index');
     }

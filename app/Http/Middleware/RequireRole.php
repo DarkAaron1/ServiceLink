@@ -15,12 +15,20 @@ class RequireRole
     {
         $session = $request->session();
 
-        // Determine role: prefer empleado role if present, else if usuario is logged treat as 'Usuario'
+        // Determine role: prefer empleado role if present, else if usuario is logged try to resolve the user's role name
         $role = null;
         if ($session->has('empleado_cargo')) {
             $role = $session->get('empleado_cargo');
-        } elseif ($session->has('usuario_nombre')) {
-            $role = 'Usuario';
+        } elseif ($session->has('usuario_rut')) {
+            // Resolve the Usuario's role name from DB if available
+            $usuarioRut = $session->get('usuario_rut');
+            $usuario = \App\Models\Usuario::where('rut', $usuarioRut)->first();
+            if ($usuario && ! empty($usuario->rol_id)) {
+                $role = \Illuminate\Support\Facades\DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
+            } else {
+                // Fallback to generic 'Usuario'
+                $role = 'Usuario';
+            }
         }
 
         // Not logged in: redirect to the appropriate login page based on intended role

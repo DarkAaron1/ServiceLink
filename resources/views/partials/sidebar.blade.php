@@ -1,5 +1,5 @@
 @php
-    $role = session('empleado_cargo') ?? (session('usuario_nombre') ? 'Usuario' : null);
+    $role = session('empleado_cargo') ?? session('usuario_rol') ?? (session('usuario_nombre') ? 'Usuario' : null);
     $rl = strtolower(trim($role ?? ''));
 @endphp
 

@@ -96,8 +96,8 @@ private function normalizarRut(?string $rut): ?string
         DB::beginTransaction();
         try {
             // 2. Normalizar RUT (Solución error 1452)
-            $rutSesion = $request->session()->get('empleado_rut') ?? $request->session()->get('usuario_rut');
-            $rutEmpleado = $this->normalizarRut($rutSesion);
+            $actor = $this->getActor($request);
+            $rutEmpleado = $this->normalizarRut($actor['rut'] ?? null);
             
             if (empty($rutEmpleado)) {
                 throw new \Exception('No se pudo validar el RUT del empleado en sesión.');
