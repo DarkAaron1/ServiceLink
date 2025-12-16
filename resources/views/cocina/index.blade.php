@@ -227,10 +227,10 @@
                 if (data.latest_created_at && (!cocinaLastSeenIso || new Date(data.latest_created_at) > new Date(cocinaLastSeenIso))) {
                     cocinaLastSeenIso = data.latest_created_at;
                     console.log('Nueva orden detectada, refrescando lista de cocina');
+                    location.reload();
                     if (window.livewire && typeof window.livewire.emit === 'function') {
                         window.livewire.emit('refreshOrders');
                     } else {
-                        location.reload();
                     }
                 }
             } catch (err) {

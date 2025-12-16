@@ -13,8 +13,12 @@ class CocinaOrders extends Component
 
     public function render()
     {
-        $comandas = Comanda::with(['pedidos.item', 'mesa'])->orderBy('created_at', 'desc')->get();
-
+        // 1. FILTRAR EN LA CONSULTA: Excluir las que están 'listo'
+        $comandas = Comanda::with(['pedidos.item', 'mesa'])
+            ->where('estado', '!=', 'listo') 
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
         $comandas->transform(function ($comanda) {
             $detalles = $comanda->pedidos->groupBy(function ($p) {
                 return ($p->item_id ?? '0') . '|' . ($p->observaciones ?? '');
