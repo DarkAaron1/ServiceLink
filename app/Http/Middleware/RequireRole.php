@@ -23,9 +23,16 @@ class RequireRole
             $role = 'Usuario';
         }
 
-        // Not logged in
+        // Not logged in: redirect to the appropriate login page based on intended role
         if (! $role) {
-            return redirect()->route('login')->withErrors(['auth' => 'Acceso restringido. Por favor, inicia sesión.']);
+            $allowed = array_map(function($r){ return strtolower(trim($r)); }, $roles ?: []);
+
+            // If the route expects a 'Usuario', send to usuario login, otherwise send to empleado login
+            if (in_array('usuario', $allowed)) {
+                return redirect()->route('login.usuario')->withErrors(['auth' => 'Acceso restringido. Por favor, inicia sesión como Usuario.']);
+            }
+
+            return redirect()->route('login.empleado')->withErrors(['auth' => 'Acceso restringido. Por favor, inicia sesión como Empleado.']);
         }
 
         // Administrador bypasses all checks

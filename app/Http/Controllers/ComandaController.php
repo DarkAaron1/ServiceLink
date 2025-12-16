@@ -39,31 +39,23 @@ class ComandaController extends Controller
             $items = Items_Menu::where('estado', 'disponible')->get();
         }
 
-        //Datos de usuario para la vista
-        $rut = $request->session()->get('usuario_rut');
-        if (! $rut) {
+        // Datos del actor (Usuario o Empleado)
+        $actor = $this->getActor($request);
+        if (! $actor) {
             return redirect()->route('login');
         }
 
-        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
-        $usuario = Usuario::where('rut', $rut)->first();
-        if (! $usuario) {
-            $usuario = (object) [
-                'nombre' => $request->session()->get('usuario_nombre'),
-                'email' => $request->session()->get('usuario_email'),
-                'rut' => $request->session()->get('usuario_rut'),
-                'rol_id' => null,
-                'estado' => null,
-            ];
+        $usuario = $actor['model'] ?? (object) ['nombre' => $actor['nombre'], 'email' => $actor['email']];
+        $rolName = $actor['rolName'] ?? null;
+
+        // Si hay restaurante de empleado en sesión, usarlo
+        if ($actor['restaurante_id']) {
+            $restauranteId = $actor['restaurante_id'];
+            $mesas = Mesas::where('restaurante_id', $restauranteId)->get();
+            $items = Items_Menu::where('restaurante_id', $restauranteId)->where('estado', 'disponible')->get();
         }
 
-        // Obtener nombre del rol si aplica
-        $rolName = null;
-        if (! empty($usuario->rol_id)) {
-            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
-        }
-
-        return view('comandas.index', compact('mesas', 'items'), compact('usuario', 'rolName'));
+        return view('comandas.index', compact('mesas', 'items', 'usuario', 'rolName'));
     }
 
     /**
@@ -104,7 +96,7 @@ private function normalizarRut(?string $rut): ?string
         DB::beginTransaction();
         try {
             // 2. Normalizar RUT (Solución error 1452)
-            $rutSesion = $request->session()->get('usuario_rut');
+            $rutSesion = $request->session()->get('empleado_rut') ?? $request->session()->get('usuario_rut');
             $rutEmpleado = $this->normalizarRut($rutSesion);
             
             if (empty($rutEmpleado)) {

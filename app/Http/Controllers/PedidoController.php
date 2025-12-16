@@ -14,28 +14,21 @@ class PedidoController extends Controller
      */
     public function index( request $request)
     {
-        // Si no hay sesión, redirigir al login
-        $rut = $request->session()->get('usuario_rut');
-        if (! $rut) {
-            return redirect()->route('login');
+        // Use centralized actor detection (Usuario or Empleado)
+        $actor = $this->getActor($request);
+        if (! $actor) {
+            return redirect()->route('login.empleado')->withErrors(['auth' => 'Acceso restringido. Por favor, inicia sesión como Empleado.']);
         }
 
-        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
-        $usuario = Usuario::where('rut', $rut)->first();
-        if (! $usuario) {
-            $usuario = (object) [
-                'nombre' => $request->session()->get('usuario_nombre'),
-                'email' => $request->session()->get('usuario_email'),
-                'rol_id' => null,
-                'estado' => null,
-            ];
-        }
-        
-        // Obtener nombre del rol si aplica
-        $rolName = null;
-        if (! empty($usuario->rol_id)) {
-            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
-        }
+        // Build a light user object for the view (compat with previous variable names)
+        $usuario = $actor['model'] ?? (object) [
+            'nombre' => $actor['nombre'] ?? null,
+            'email' => $actor['email'] ?? null,
+            'rol_id' => null,
+            'estado' => null,
+        ];
+
+        $rolName = $actor['rolName'] ?? null;
 
         // Sección de datos Comanda-Pedidos para Vista Cocina
         // Agrupamos pedidos por comanda y transformamos para que la vista

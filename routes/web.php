@@ -57,8 +57,8 @@ Route::patch('/mesas/{id}', [MesasController::class, 'update'])->name('mesas.upd
 Route::delete('/mesas/{mesa}', [MesasController::class, 'destroy'])->name('mesas.destroy');
 
 // Rutas para comandas
-Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.index');
-Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store');
+Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.index')->middleware('role:Mesero,Administrador');
+Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store')->middleware('role:Mesero,Administrador');
 Route::get('/comandas/{comanda}', [ComandaController::class, 'show'])->name('comandas.show');
 
 // Rutas para items menú
@@ -97,6 +97,6 @@ Route::post('/colaboradores/{rut}/reset-password', [EmpleadoController::class, '
 Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::class, 'generateQrCode'])->name('generate.qr');
 
 //Ruta cocina
-Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index');
+Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index')->middleware('role:Cocinero');
 // Endpoint para comprobar si hay nuevas órdenes (usa en polling cliente)
 Route::get('/cocina/ordenes/latest', [App\Http\Controllers\PedidoController::class, 'latestOrder'])->name('cocina.ordenes.latest');

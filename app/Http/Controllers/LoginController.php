@@ -72,7 +72,17 @@ class LoginController extends Controller
         $request->session()->put('empleado_email', $empleado->email);
         $request->session()->put('empleado_cargo', $empleado->cargo ?? '');
 
-        // redirigir a la vista Demo.index (puedes cambiar a un dashboard de empleado)
+        // Redirigir según cargo del empleado: Cocinero -> Cocina, Mesero -> Comandas, Administrador -> Dashboard
+        $cargo = strtolower(trim($empleado->cargo ?? ''));
+        if ($cargo === 'cocinero') {
+            return redirect()->route('cocina.index');
+        }
+
+        if ($cargo === 'mesero') {
+            return redirect()->route('comandas.index');
+        }
+
+        // Administrador o cualquier otro cargo por defecto: dashboard
         return redirect()->route('demo.index');
     }
 

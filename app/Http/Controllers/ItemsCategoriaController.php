@@ -17,15 +17,20 @@ class ItemsCategoriaController extends Controller
      */
     public function index(Request $request)
     {
-        // Mostrar categorías del restaurante del admin si existe contexto
-        $rutSesion = request()->session()->get('usuario_rut');
+        // Determinar restaurante desde actor (usuario o empleado) o desde autenticación
+        $actor = $this->getActor($request);
         $restauranteId = null;
-        if ($rutSesion) {
-            $rest = Restaurante::where('rut_admin', $rutSesion)->first();
-            if ($rest) $restauranteId = $rest->id;
-        } elseif (Auth::user() && isset(Auth::user()->rut)) {
-            $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
-            if ($rest) $restauranteId = $rest->id;
+        if ($actor && ! empty($actor['restaurante_id'])) {
+            $restauranteId = $actor['restaurante_id'];
+        } else {
+            $rutSesion = request()->session()->get('usuario_rut');
+            if ($rutSesion) {
+                $rest = Restaurante::where('rut_admin', $rutSesion)->first();
+                if ($rest) $restauranteId = $rest->id;
+            } elseif (Auth::user() && isset(Auth::user()->rut)) {
+                $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
+                if ($rest) $restauranteId = $rest->id;
+            }
         }
 
         if ($restauranteId) {
@@ -34,30 +39,14 @@ class ItemsCategoriaController extends Controller
             $categorias = Items_Categoria::all();
         }
 
-        // Si no hay sesión, redirigir al login
-        $rut = $request->session()->get('usuario_rut');
-        if (! $rut) {
+        if (! $actor) {
             return redirect()->route('login');
         }
 
-        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
-        $usuario = Usuario::where('rut', $rut)->first();
-        if (! $usuario) {
-            $usuario = (object) [
-                'nombre' => $request->session()->get('usuario_nombre'),
-                'email' => $request->session()->get('usuario_email'),
-                'rol_id' => null,
-                'estado' => null,
-            ];
-        }
-
-        // Obtener nombre del rol si aplica
-        $rolName = null;
-        if (! empty($usuario->rol_id)) {
-            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
-        }
+        $usuario = $actor['model'] ?? (object) ['nombre' => $actor['nombre'], 'email' => $actor['email']];
+        $rolName = $actor['rolName'] ?? null;
         
-        return view('categorias.index', compact('categorias'), compact('usuario', 'rolName'));
+        return view('categorias.index', compact('categorias', 'usuario', 'rolName'));
     }
 
     /**

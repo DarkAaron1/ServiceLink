@@ -17,47 +17,25 @@ class MesasController extends Controller
      */
     public function index( Request $request)
     {
-        // Si el admin tiene contexto de restaurante, listar solo sus mesas
-        $restauranteId = null;
-        $rutSesion = request()->session()->get('usuario_rut');
-        if ($rutSesion) {
-            $rest = Restaurante::where('rut_admin', $rutSesion)->first();
-            if ($rest) $restauranteId = $rest->id;
-        } elseif (Auth::user() && isset(Auth::user()->rut)) {
-            $rest = Restaurante::where('rut_admin', Auth::user()->rut)->first();
-            if ($rest) $restauranteId = $rest->id;
-        }
-
-        if ($restauranteId) {
-            $mesas = Mesas::with('restaurante')->where('restaurante_id', $restauranteId)->get();
-        } else {
-            $mesas = Mesas::with('restaurante')->get();
-        }
-
-        // Si no hay sesión, redirigir al login
-        $rut = $request->session()->get('usuario_rut');
-        if (! $rut) {
+        // Usar actor (Usuario o Empleado) para determinar acceso y restaurante
+        $actor = $this->getActor($request);
+        if (! $actor) {
             return redirect()->route('login');
         }
 
-        // Intentar cargar usuario desde DB; si no existe, usar valores en sesión como fallback
-        $usuario = Usuario::where('rut', $rut)->first();
-        if (! $usuario) {
-            $usuario = (object) [
-                'nombre' => $request->session()->get('usuario_nombre'),
-                'email' => $request->session()->get('usuario_email'),
-                'rol_id' => null,
-                'estado' => null,
-            ];
+        $usuario = $actor['model'] ?? (object) ['nombre' => $actor['nombre'], 'email' => $actor['email']];
+        $rolName = $actor['rolName'] ?? null;
+
+        // Si hay restaurante de empleado en sesión, usarlo
+        if ($actor['restaurante_id']) {
+            $restauranteId = $actor['restaurante_id'];
+            $mesas = Mesas::with('restaurante')->where('restaurante_id', $restauranteId)->get();
+        } else {
+            // fallback: listar todas
+            $mesas = Mesas::with('restaurante')->get();
         }
 
-        // Obtener nombre del rol si aplica
-        $rolName = null;
-        if (! empty($usuario->rol_id)) {
-            $rolName = DB::table('roles')->where('id', $usuario->rol_id)->value('nombre');
-        }
-
-        return view('mesas.index', compact('mesas'),compact('usuario', 'rolName'));
+        return view('mesas.index', compact('mesas', 'usuario', 'rolName'));
     }
 
 
