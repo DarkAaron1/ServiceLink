@@ -124,58 +124,26 @@
 						<input id="email" type="email" name="email" placeholder="Correo electrónico" value="{{ old('email') }}" required autofocus>
 					</label>
 
-					<!-- reCAPTCHA v3 token (se rellena antes de enviar) -->
-					<input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" value="">
-
 					<div style="margin-top:1rem;">
 						<button type="submit" id="sendBtn" class="btn-primary" disabled>Enviar enlace</button>
 					</div>
+
+					<!-- pequeño JS: valida email y habilita botón -->
+					<script>
+						(function(){
+							const email = document.getElementById('email');
+							const sendBtn = document.getElementById('sendBtn');
+							function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+							function update(){ if(!email||!sendBtn) return; sendBtn.disabled = !validEmail(email.value.trim()); }
+							if(email){ email.addEventListener('input', update); update(); }
+						})();
+					</script>
 
 					<!-- Enlace rápido para volver al Dashboard si es necesario -->
 					<div style="margin-top:1.2rem;text-align:center;">
 						<a href="{{ route('login') }}" class="small link-muted">Volver al inicio</a>
 					</div>
 				</form>
-
-				<!-- Google reCAPTCHA v3 -->
-				<script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"></script>
-				<script>
-					(function(){
-						const email = document.getElementById('email');
-						const sendBtn = document.getElementById('sendBtn');
-						const tokenInput = document.getElementById('g-recaptcha-response');
-
-						function validateEmail(value) {
-							return /^(?:[a-zA-Z0-9_'^&\/+%~-]+(?:\.[a-zA-Z0-9_'^&\/+%~-]+)*|"(?:\\[\s\S]|[^\\"])*")@(?:(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/.test(value);
-						}
-
-						function updateButtonState() {
-							const ok = email && sendBtn;
-							if (!ok) return;
-							const validEmail = validateEmail(email.value.trim());
-							sendBtn.disabled = !validEmail;
-						}
-
-						if (email) email.addEventListener('input', updateButtonState);
-						// Inicializar estado
-						updateButtonState();
-
-						// Interceptar envío para solicitar token reCAPTCHA y luego enviar
-						const form = document.querySelector('.login-form');
-						if (form) {
-							form.addEventListener('submit', function(e){
-								e.preventDefault();
-								sendBtn.disabled = true;
-								grecaptcha.ready(function(){
-									grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY') }}', {action: 'forgot_password'}).then(function(token){
-										if (tokenInput) tokenInput.value = token;
-										form.submit();
-									});
-								});
-							});
-						}
-					})();
-				</script>
 			</div>
 		</div>
 	</div>

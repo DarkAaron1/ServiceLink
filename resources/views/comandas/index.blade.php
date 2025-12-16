@@ -126,8 +126,8 @@
             <div id="create-comanda-modal" class="mesa-modal" style="display:none;" role="dialog" aria-modal="true">
                 <div class="modal-content">
                     <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
-                        <h2 id="create-comanda-title">Crear Comanda</h2>
-                        <button id="close-create-comanda" class="btn">Cerrar</button>
+                        <h2 id="create-comanda-title" class="label-dark">Crear Comanda</h2>
+                        <button id="close-create-comanda" class="btn"> <span class="material-icons-sharp">close</span></button>
                     </div>
 
                     <form id="create-comanda-form" method="POST" action="{{ route('comandas.store') }}">

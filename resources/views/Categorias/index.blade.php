@@ -136,7 +136,7 @@
                         </button>
                         <div class="modal-header" style="margin-bottom:1rem;">
                             <span class="modal-icon material-icons-sharp">category</span>
-                            <h2 style="margin:0; font-size:1.25rem;">Crear Categoría</h2>
+                            <h2 style="margin:0; font-size:1.25rem;"class="label-dark">Crear Categoría</h2>
                         </div>
                         <form id="cat-add-form" method="POST" action="{{ url('/items_categorias') }}">
                             @csrf

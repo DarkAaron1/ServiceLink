@@ -20,6 +20,7 @@
 }
 /* Botón cerrar */
 #close-modal,
+#close-create-comanda,
 #close-edit-modal {
     position: absolute;
     right: 1rem;
@@ -33,6 +34,7 @@
 }
 
 #close-modal:hover,
+#close-create-comanda:hover,
 #close-edit-modal:hover {
     color: #1976d2;
 }

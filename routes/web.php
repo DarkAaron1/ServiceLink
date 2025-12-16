@@ -7,14 +7,17 @@ use App\Http\Controllers\ItemsCategoriaController;
 use App\Http\Controllers\ItemsMenuController;
 use App\Http\Controllers\MesasController;
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\LoginController; // agregado
-use App\Http\Controllers\DashboardController; // agregado
-use App\Http\Controllers\EmpleadoController; // <-- agregado
-use App\Http\Controllers\RestauranteController; // <-- agregado
+use App\Http\Controllers\LoginController; 
+use App\Http\Controllers\DashboardController; 
+use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\RestauranteController; 
 use App\Http\Controllers\SetPasswordController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\ComandaController;
 use App\Mail\MiPrimerEmail;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 Route::get('/index', [DashboardController::class, 'index'])->name('demo.index');
 
@@ -30,15 +33,28 @@ Route::get('/register', [UsuarioController::class, 'create'])->name('register');
 // Cambiado el nombre de la ruta POST para evitar conflicto con 'usuarios.store'
 Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
 
-// Formulario para establecer contraseña después del registro
-Route::get('/set-password', [SetPasswordController::class, 'show'])->name('set-password');
-Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.post');
 
-// Página pública para solicitar restablecer contraseña (vista Demo)
 Route::get('/forgot-password', function () {
-    return view('demo.forget_password'); // asegúrate que resources/views/demo/forget_password.blade.php exista
+    return view('demo.forget_password');
 })->name('forgot-password');
 
+// Procesar envío de petición de restablecimiento de contraseña
+Route::post('/forgot-password', function (Request $request) {
+    $request->validate([ 'email' => 'required|email' ]);
+
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+
+    if ($status == Password::RESET_LINK_SENT) {
+        return back()->with('status', __($status));
+    }
+
+    return back()->withErrors(['email' => __($status)]);
+})->name('forgot-password.send');
+
+// Ruta para enviar el enlace / mensaje desde el formulario de "olvidé mi contraseña"
+Route::post('/forgot-password/send', [ForgotPasswordController::class, 'send'])->name('forgot-password.send');
 
 // ruta de bienvenida (a donde redirige el login)
 Route::get('/welcome', function () {
@@ -102,3 +118,10 @@ Route::get('/qr/{restaurante}', [App\Http\Controllers\EndroidQrCodeController::c
 
 //Ruta cocina
 Route::get('/cocina', [App\Http\Controllers\PedidoController::class, 'index'])->name('cocina.index');
+
+
+
+
+// Formulario para establecer contraseña después del registro
+Route::get('/set-password', [SetPasswordController::class, 'show'])->name('set-password');
+Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.post');
