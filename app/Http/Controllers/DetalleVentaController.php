@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Detalle_Venta;
+use App\Models\Comanda;
+use App\Models\Pedido;
 use Illuminate\Http\Request;
 
 class DetalleVentaController extends Controller
@@ -13,6 +15,20 @@ class DetalleVentaController extends Controller
     public function index()
     {
         //
+    }
+
+    public function detalleVenta($mesaId)
+    {
+        $comanda = Comanda::where('mesa_id', $mesaId)
+            ->with(['pedidos.item', 'mesa'])
+            ->first();
+
+        $comanda->total = $comanda->pedidos->sum(function ($pedido) {
+            return ($pedido->item ? $pedido->item->precio : 0) * $pedido->cantidad;
+        });
+
+        // Asegúrate de que las relaciones existan antes de acceder a ellas en la vista.
+        return view('comandas.detalle_venta', compact('comanda',));
     }
 
     /**
