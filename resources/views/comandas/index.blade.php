@@ -22,6 +22,22 @@
         }
         /* Asegurar que la lista de items tenga scroll independiente */
         #items-list-wrapper { overflow:auto; max-height:350px; }
+        /* Botón de imprimir estilizado para el sistema */
+        .btn-print {
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.18);
+            cursor: pointer;
+        }
+        .btn-print .material-icons-sharp { font-size:18px; }
+        .btn-print:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,0.2); }
     </style>
 </head>
 
@@ -69,7 +85,9 @@
                                         {{ $mesa->detalle_reserva }}</p>
                                 @endif
                                 <div class="mesa-actions">
-                                    <button type="button" class="button-volver small open-detalle" data-mesa="{{ $mesa->id }}">Ver Comanda Abierta</button>
+                                    @if(isset($mesa->estado) && trim(strtolower($mesa->estado)) === 'ocupada')
+                                        <button type="button" class="button-volver small open-detalle" data-mesa="{{ $mesa->id }}">Ver Comanda Abierta</button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -206,9 +224,9 @@
                                     <p id="detalle-comanda-obs" class="small" style="margin-top:6px; color:#555;"></p>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:.6rem;">
-                                <button id="print-detalle-btn" class="btn-primary">Imprimir</button>
-                                <button id="liberar-mesa-btn" class="btn" style="background:#e74c3c;color:#fff;border-radius:6px;padding:8px 10px;">Liberar mesa</button>
+                            <div style="display:flex; gap:.6rem ; margin-right: 5%;">
+                                <button id="print-detalle-btn" class="btn-print"><span class="material-icons-sharp">print</span><span>Imprimir</span></button>
+                                <button id="liberar-mesa-btn" class="btn" style="background:#e74c3c;color:#fff;border-radius:6px;padding:5px 10px;">Liberar mesa</button>
                             </div>
                         </div>
 

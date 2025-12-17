@@ -21,6 +21,7 @@
 /* Botón cerrar */
 #close-modal,
 #close-create-comanda,
+#close-detalle-venta,
 #close-edit-modal {
     position: absolute;
     right: 1rem;
@@ -34,6 +35,7 @@
 }
 
 #close-modal:hover,
+#close-detalle-venta:hover,
 #close-create-comanda:hover,
 #close-edit-modal:hover {
     color: #1976d2;
