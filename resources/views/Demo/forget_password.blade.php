@@ -150,7 +150,7 @@
 
 					<!-- Enlace rápido para volver al Dashboard si es necesario -->
 					<div style="margin-top:1.2rem;text-align:center;">
-						<a href="{{ route('login') }}" class="small link-muted">Volver al inicio</a>
+						<a href="{{ route('login.usuario') }}" class="small link-muted">Volver al inicio</a>
 					</div>
 				</form>
 			</div>

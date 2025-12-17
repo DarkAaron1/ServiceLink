@@ -42,11 +42,11 @@
                 <span class="material-icons-sharp">receipt_long</span>
                 <h3>Comandas</h3>
             </a>
-
+{{-- 
             <a href="#">
                 <span class="material-icons-sharp">insights</span>
                 <h3>Estadísticas</h3>
-            </a>
+            </a> --}}
 
             <a href="{{ route('cocina.index') }}" class="{{ request()->routeIs('cocina*') ? 'active' : '' }}">
                 <span class="material-icons-sharp">restaurant</span>
@@ -72,7 +72,7 @@
         {{-- Logout / info sesión --}}
         <div class="sidebar-footer" style="margin-top:1.5rem;font-size:.9rem;color:#6b7aa6;">
             @if(session('usuario_nombre'))
-                <div>Sesión: <strong>{{ session('usuario_nombre') }}</strong> (Usuario)</div>
+                {{-- <div>Sesión: <strong>{{ session('usuario_nombre') }}</strong> (Usuario)</div> --}}
                 <div style="margin-top:.5rem;"><a href="{{ route('logout') }}">Cerrar sesión</a></div>
             @elseif(session('empleado_nombre'))
                 <div>Sesión: <strong>{{ session('empleado_nombre') }}</strong> ({{ session('empleado_cargo') }})</div>

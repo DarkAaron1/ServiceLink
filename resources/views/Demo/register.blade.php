@@ -288,11 +288,11 @@
 
                     <div style="margin-top:1rem;display:flex;justify-content:center;gap:.5rem;align-items:center;">
                         <span class="small">¿Ya tienes cuenta?</span>
-                        <a href="login" class="link-muted" style="font-weight:600;">Inicia sesión</a>
+                        <a href="/" class="link-muted" style="font-weight:600;">Inicia sesión</a>
                     </div>
 
                     <div style="margin-top:1.2rem;text-align:center;">
-                        <a href="login" class="small link-muted">Volver al inicio</a>
+                        <a href="welcome" class="small link-muted">Volver al inicio</a>
                     </div>
                 </form>
             </div>

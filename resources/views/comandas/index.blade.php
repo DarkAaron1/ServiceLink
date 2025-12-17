@@ -22,6 +22,22 @@
         }
         /* Asegurar que la lista de items tenga scroll independiente */
         #items-list-wrapper { overflow:auto; max-height:350px; }
+        /* Botón de imprimir estilizado para el sistema */
+        .btn-print {
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.18);
+            cursor: pointer;
+        }
+        .btn-print .material-icons-sharp { font-size:18px; }
+        .btn-print:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,0.2); }
     </style>
 </head>
 
@@ -69,7 +85,9 @@
                                         {{ $mesa->detalle_reserva }}</p>
                                 @endif
                                 <div class="mesa-actions">
-                                    <button type="button" class="button-volver small open-detalle" data-mesa="{{ $mesa->id }}">Ver Comanda Abierta</button>
+                                    @if(isset($mesa->estado) && trim(strtolower($mesa->estado)) === 'ocupada')
+                                        <button type="button" class="button-volver small open-detalle" data-mesa="{{ $mesa->id }}">Ver Comanda Abierta</button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -206,13 +224,13 @@
                                     <p id="detalle-comanda-obs" class="small" style="margin-top:6px; color:#555;"></p>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:.6rem;">
-                                <button id="print-detalle-btn" class="btn-primary">Imprimir</button>
-                                <button id="liberar-mesa-btn" class="btn" style="background:#e74c3c;color:#fff;border-radius:6px;padding:8px 10px;">Liberar mesa</button>
+                            <div style="display:flex; gap:.6rem ; margin-right: 5%;">
+                                <button id="print-detalle-btn" class="btn-print"><span class="material-icons-sharp">print</span><span>Imprimir</span></button>
+                                <button id="liberar-mesa-btn" class="btn" style="background:#e74c3c;color:#fff;border-radius:6px;padding:5px 10px;">Liberar mesa</button>
                             </div>
                         </div>
 
-                        <div style="margin-top:1rem;">
+                        <div style="margin-top:1rem;" >
                             <table class="table order-table" style="width:100%;">
                                 <thead>
                                     <tr>
@@ -220,10 +238,9 @@
                                         <th>Cant.</th>
                                         <th>Precio</th>
                                         <th>Subtotal</th>
-                                        <th>Obs.</th>
                                     </tr>
                                 </thead>
-                                <tbody id="detalle-items-body"></tbody>
+                                <tbody id="detalle-items-body" style="background-color: var(--color-white);"></tbody>
                             </table>
 
                             <div style="display:flex; justify-content:flex-end; margin-top:1rem; gap:1rem; align-items:center;">
@@ -463,7 +480,7 @@
                     detalleItemsBody.innerHTML = '';
                     if (!items || !items.length) {
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td colspan="5" style="text-align:center; padding:1.2rem; color:#666;">No hay consumo registrado para esta comanda.</td>`;
+                        tr.innerHTML = `<td colspan="4" style="text-align:center; padding:1.2rem; color:#666;">No hay consumo registrado para esta comanda.</td>`;
                         detalleItemsBody.appendChild(tr);
                     } else {
                         items.forEach(p => {
@@ -473,7 +490,6 @@
                                 <td>${p.cantidad}</td>
                                 <td>${formatCurrency(p.precio_unitario ?? p.precio ?? 0)}</td>
                                 <td>${formatCurrency(p.subtotal ?? ((p.precio_unitario ?? p.precio ?? 0) * (p.cantidad ?? 1)))}</td>
-                                <td>${p.observaciones ?? ''}</td>
                             `;
                             detalleItemsBody.appendChild(tr);
                         });

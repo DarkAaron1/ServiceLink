@@ -75,7 +75,7 @@ class DetalleVentaController extends Controller
      */
     public function liberarMesa(Request $request, $mesaId)
     {
-        $comanda = Comanda::where('mesa_id', $mesaId)->where('estado_cuenta', 'abierta')->first();
+        $comanda = Comanda::where('mesa_id', $mesaId)->where('estado', 'abierta')->first();
 
         if (! $comanda) {
             return response()->json(['success' => false, 'message' => 'No hay comanda abierta para esta mesa.'], 404);
@@ -83,8 +83,9 @@ class DetalleVentaController extends Controller
 
         DB::beginTransaction();
         try {
-            // Marcar comanda como cerrada
-            $comanda->estado_cuenta = 'cerrada';
+            // Marcar comanda como cerrada y set fecha_cierre
+            $comanda->estado = 'cerrada';
+            $comanda->fecha_cierre = now();
             $comanda->save();
 
             // Actualizar estado de la mesa a Disponible
