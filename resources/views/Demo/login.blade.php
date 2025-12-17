@@ -178,7 +178,7 @@
 
 					<!-- Enlace rápido para volver al Dashboard si es necesario -->
 					<div style="margin-top:1.2rem;text-align:center;">
-						<a href="" class="small link-muted">Volver al inicio</a>
+						<a href="/" class="small link-muted">Volver al inicio</a>
 					</div>
 				</form>
 			</div>

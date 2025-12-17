@@ -230,7 +230,7 @@
                             </div>
                         </div>
 
-                        <div style="margin-top:1rem;">
+                        <div style="margin-top:1rem;" >
                             <table class="table order-table" style="width:100%;">
                                 <thead>
                                     <tr>
@@ -240,7 +240,7 @@
                                         <th>Subtotal</th>
                                     </tr>
                                 </thead>
-                                <tbody id="detalle-items-body"></tbody>
+                                <tbody id="detalle-items-body" style="background-color: var(--color-white);"></tbody>
                             </table>
 
                             <div style="display:flex; justify-content:flex-end; margin-top:1rem; gap:1rem; align-items:center;">
