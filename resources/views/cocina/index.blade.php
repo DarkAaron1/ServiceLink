@@ -49,7 +49,7 @@
                 <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
                     <label for="filter_estado" style="font-weight:500;">Filtrar por estado:</label>
                     <select id="filter_estado"
-                        style="padding:0.5rem; border-radius:8px; border:1px solid #e2e8f0; background:#fff;">
+                        style="padding:0.5rem; border-radius:8px; border:1px solid #e2e8f0;">
                         <option value="todos">Todos</option>
                         <option value="pendiente">Pendiente</option>
                         <option value="en_preparacion">En Preparación</option>

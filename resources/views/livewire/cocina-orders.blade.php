@@ -12,7 +12,7 @@
                     <div class="order-items" style="margin:1rem 0; max-height:200px; overflow-y:auto;">
                         @forelse ($comanda->detalles as $detalle)
                             <div class="order-item"
-                                style="padding:0.75rem; border-left:3px solid #3b82f6; margin-bottom:0.5rem; background:#f8fafc;">
+                                style="padding:0.75rem; border-left:3px solid #3b82f6; margin-bottom:0.5rem; background:var(--card-bg); border-radius:4px;">
                                 <div style="display:flex; justify-content:space-between; align-items:start;">
                                     <div>
                                         <strong>{{ $detalle->item->nombre ?? 'Item' }}</strong>
@@ -26,7 +26,7 @@
                                         @endif
                                     </div>
                                     <span class="item-status"
-                                        style="padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; background:#e2e8f0;">
+                                        style="padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; background:var(--item-status-bg);">
                                         {{ $detalle->estado ?? 'pendiente' }}
                                     </span>
                                 </div>

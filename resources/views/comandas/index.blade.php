@@ -238,7 +238,6 @@
                                         <th>Cant.</th>
                                         <th>Precio</th>
                                         <th>Subtotal</th>
-                                        <th>Obs.</th>
                                     </tr>
                                 </thead>
                                 <tbody id="detalle-items-body"></tbody>
@@ -487,7 +486,7 @@
                     detalleItemsBody.innerHTML = '';
                     if (!items || !items.length) {
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td colspan="5" style="text-align:center; padding:1.2rem; color:#666;">No hay consumo registrado para esta comanda.</td>`;
+                        tr.innerHTML = `<td colspan="4" style="text-align:center; padding:1.2rem; color:#666;">No hay consumo registrado para esta comanda.</td>`;
                         detalleItemsBody.appendChild(tr);
                     } else {
                         items.forEach(p => {
@@ -497,7 +496,6 @@
                                 <td>${p.cantidad}</td>
                                 <td>${formatCurrency(p.precio_unitario ?? p.precio ?? 0)}</td>
                                 <td>${formatCurrency(p.subtotal ?? ((p.precio_unitario ?? p.precio ?? 0) * (p.cantidad ?? 1)))}</td>
-                                <td>${p.observaciones ?? ''}</td>
                             `;
                             detalleItemsBody.appendChild(tr);
                         });
