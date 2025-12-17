@@ -203,11 +203,11 @@
 
             <div style="margin-bottom:2rem;" class="management-tables">
                 <div class="header" style="display:flex; align-items:center; justify-content:flex-end; gap:1rem;">
-                    @if(in_array($role, ['Administrador','Usuario']))
-                    <button id="open-modal" class="btn-primary button-Add">
-                        <span class="material-icons-sharp" style="font-size:1.3rem;">add</span>
-                        Nuevo Colaborador
-                    </button>
+                    @if (in_array($role, ['Administrador', 'Usuario']))
+                        <button id="open-modal" class="btn-primary button-Add">
+                            <span class="material-icons-sharp" style="font-size:1.3rem;">add</span>
+                            Nuevo Colaborador
+                        </button>
                     @endif
                 </div>
 
@@ -231,10 +231,10 @@
                                         data-employee='@json($e)'>
                                         <span class="material-icons-sharp">edit</span>
                                     </button>
-                                    @if(in_array($role, ['Administrador','Usuario']))
-                                    <button class="mesa-btn delete" type="button" data-rut="{{ $e->rut }}">
-                                        <span class="material-icons-sharp">delete</span>
-                                    </button>
+                                    @if (in_array($role, ['Administrador', 'Usuario']))
+                                        <button class="mesa-btn delete" type="button" data-rut="{{ $e->rut }}">
+                                            <span class="material-icons-sharp">delete</span>
+                                        </button>
                                     @endif
                                 </div>
                             </div>
@@ -272,7 +272,9 @@
                         <div class="input-group">
                             <label for="rut" class="label-dark">RUT</label>
                             <input id="rut" name="rut" required placeholder="Ej: 12.345.678-9" maxlength="12"
-                                autocomplete="off" pattern="^[0-9\.\-]{1,15}-[0-9Kk]$" title="Formato RUT: 12.345.678-9. Solo números, puntos, guión y la letra K" inputmode="text">
+                                autocomplete="off" pattern="^[0-9\.\-]{1,15}-[0-9Kk]$"
+                                title="Formato RUT: 12.345.678-9. Solo números, puntos, guión y la letra K"
+                                inputmode="text">
                             @error('rut')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -280,7 +282,8 @@
                         <div class="input-group">
                             <label for="nombre"class="label-dark">Nombre</label>
                             <input id="nombre" name="nombre" type="text" required placeholder="Ej: Juan"
-                                autocomplete="off" pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]{1,100}" title="Solo letras y espacios">
+                                autocomplete="off" pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]{1,100}"
+                                title="Solo letras y espacios">
                             @error('nombre')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -288,7 +291,8 @@
                         <div class="input-group">
                             <label for="apellido" class="label-dark">Apellido</label>
                             <input id="apellido" type="text" name="apellido" required placeholder="Ej: Pérez"
-                                autocomplete="off" pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]{1,100}" title="Solo letras y espacios">
+                                autocomplete="off" pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]{1,100}"
+                                title="Solo letras y espacios">
                             @error('apellido')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -306,7 +310,8 @@
                         <div class="input-group">
                             <label for="fono" class="label-dark">Teléfono</label>
                             <input id="fono" name="fono" maxlength="15" required placeholder="Ej: 912345678"
-                                autocomplete="off" inputmode="numeric" pattern="[0-9]{7,15}" title="Solo números (7-15 dígitos)">
+                                autocomplete="off" inputmode="numeric" pattern="[0-9]{7,15}"
+                                title="Solo números (7-15 dígitos)">
                             @error('fono')
                                 <div class="error">{{ $message }}</div>
                             @enderror
@@ -467,7 +472,7 @@
 
         // Sanitizar inputs: permitir solo letras en nombre/apellido y solo dígitos en fono
         function allowOnlyLetters(el) {
-            el.addEventListener('input', function () {
+            el.addEventListener('input', function() {
                 const pos = this.selectionStart;
                 // Permite letras (incluye acentos y ñ), espacios, guiones y apóstrofes
                 this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s\-']/g, '');
@@ -476,7 +481,7 @@
         }
 
         function allowOnlyDigits(el) {
-            el.addEventListener('input', function () {
+            el.addEventListener('input', function() {
                 const pos = this.selectionStart;
                 this.value = this.value.replace(/\D/g, '');
                 this.setSelectionRange(pos, pos);
@@ -493,7 +498,7 @@
 
         // Sanitizar RUT: permitir solo dígitos, puntos, guión y la letra K (mayúscula o minúscula)
         function allowOnlyRut(el) {
-            el.addEventListener('input', function () {
+            el.addEventListener('input', function() {
                 const pos = this.selectionStart;
                 // Permite dígitos, puntos, guiones y K/k
                 this.value = this.value.replace(/[^0-9\.\-Kk]/g, '').toUpperCase();
@@ -516,7 +521,7 @@
 
         // Permitir solo dígitos, puntos, guión y la letra K para RUT (sanitiza en tiempo real)
         function allowOnlyRut(el) {
-            el.addEventListener('input', function () {
+            el.addEventListener('input', function() {
                 const pos = this.selectionStart;
                 // permitir números, puntos, guión y k/K
                 this.value = this.value.replace(/[^0-9\.\-kK]/g, '').toUpperCase();
@@ -652,6 +657,13 @@
             console.error(@json($errors->all()));
             modalTitle.textContent = 'Error - Revisar datos';
         @endif
+
+        // Establecer fecha máxima para fecha de nacimiento (18 años atrás)
+        const hoy = new Date();
+        hoy.setFullYear(hoy.getFullYear() - 18);
+
+        const maxDate = hoy.toISOString().split('T')[0];
+        document.getElementById('fecha_nacimiento').max = maxDate;
     </script>
 
 
