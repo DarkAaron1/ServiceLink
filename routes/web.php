@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\RestauranteController; 
 use App\Http\Controllers\SetPasswordController;
+use App\Http\Controllers\DetalleVentaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\ComandaController;
@@ -136,3 +137,5 @@ Route::get('/set-password/{token?}', [SetPasswordController::class, 'show'])
 
 Route::post('/set-password/{token?}', [SetPasswordController::class, 'store'])
     ->name('set-password.post');
+
+Route::get('/detalle_ventas/{mesa}', [DetalleVentaController::class, 'index'])->name('detalle_ventas.index');

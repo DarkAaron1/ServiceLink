@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Mesas;
 use App\Models\Pedido;
+use App\Models\Empleado;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Comanda extends Model
@@ -27,6 +28,11 @@ class Comanda extends Model
     public function pedidos()
     {
         return $this->hasMany(Pedido::class);
+    }
+
+    public function empleado()
+    {
+        return $this->belongsTo(Empleado::class, 'rut_empleado', 'rut');
     }
     //
 }

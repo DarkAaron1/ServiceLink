@@ -68,6 +68,11 @@
                                         style="font-size:0.8rem;  margin-top:0.4rem;">Reserva:
                                         {{ $mesa->detalle_reserva }}</p>
                                 @endif
+                                <button class="btn-small btn-secondary"
+                                    style="margin-top:0.5rem;"
+                                    onclick="window.location='{{ route('detalle_ventas.index', ['mesa' => $mesa->id]) }}'; event.stopPropagation();">
+                                    Ver Comanda Abierta
+                                </button>
                             </div>
                         @endforeach
                     @else
