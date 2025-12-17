@@ -89,6 +89,11 @@ Route::get('/comandas', [ComandaController::class, 'index'])->name('comandas.ind
 Route::post('/comandas', [ComandaController::class, 'store'])->name('comandas.store')->middleware('role:Mesero,Administrador');
 Route::get('/comandas/{comanda}', [ComandaController::class, 'show'])->name('comandas.show');
 
+// Endpoint para obtener detalle de comanda por mesa (JSON para modal)
+Route::get('/detalle-ventas/mesa/{mesa}', [DetalleVentaController::class, 'detalleVenta'])->name('detalle_ventas.show');
+// POST para liberar mesa (cerrar comanda)
+Route::post('/detalle-ventas/mesa/{mesa}/liberar', [DetalleVentaController::class, 'liberarMesa'])->name('detalle_ventas.liberar');
+
 // Rutas para items menú
 Route::get('/items_menus', [ItemsMenuController::class, 'index'])->name('items_menu.index');
 Route::post('/items_menus', [ItemsMenuController::class, 'store'])->name('items_menus.store');
