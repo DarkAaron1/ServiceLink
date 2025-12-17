@@ -207,13 +207,14 @@
                     <!-- RUT -->
                     <label class="field" for="rut" style="margin-top:1rem;">
                         <span class="material-icons-sharp">badge</span>
-                        <input id="rut" inputmode="text" name="rut" maxlength="12" placeholder="RUT (ej: 12.345.678-9)"
-                            value="{{ old('rut') }}" required autofocus>
+                        <input id="rut" inputmode="text" name="rut" maxlength="12"
+                            placeholder="RUT (ej: 12.345.678-9)" value="{{ old('rut') }}" required autofocus>
                     </label>
                     @error('rut')
                         <div class="error">{{ $message }}</div>
                     @enderror
-                    <div id="rutHelp" class="small" style="color:#d0464c;display:none;margin-top:.4rem;">RUT inválido</div>
+                    <div id="rutHelp" class="small" style="color:#d0464c;display:none;margin-top:.4rem;">RUT inválido
+                    </div>
 
                     <!-- Nombre -->
                     <label class="field" for="nombre" style="margin-top:.6rem;">
@@ -244,7 +245,8 @@
                     @error('email')
                         <div class="error">{{ $message }}</div>
                     @enderror
-                    <div id="emailHelp" class="small" aria-live="polite" style="color:#d0464c;display:none;margin-top:.4rem;">Email inválido</div>
+                    <div id="emailHelp" class="small" aria-live="polite"
+                        style="color:#d0464c;display:none;margin-top:.4rem;">Email inválido</div>
 
                     <!-- Contraseña -->
                     <label class="field" for="password" style="margin-top:.6rem;">
@@ -473,8 +475,8 @@
         })();
 
         // Validación en cliente del email: mostrar mensaje al terminar de escribir
-        (function(){
-            function initEmailValidation(){
+        (function() {
+            function initEmailValidation() {
                 const emailInput = document.getElementById('email');
                 const emailHelp = document.getElementById('emailHelp');
                 if (!emailInput) return;
@@ -503,7 +505,7 @@
                 emailInput.addEventListener('blur', updateEmail);
                 emailInput.addEventListener('change', updateEmail);
                 emailInput.addEventListener('focusout', updateEmail);
-                emailInput.addEventListener('input', function(){
+                emailInput.addEventListener('input', function() {
                     // hide while typing, validate on blur
                     if (emailHelp) emailHelp.style.display = 'none';
                     emailInput.classList.remove('error');
@@ -511,7 +513,12 @@
 
                 // prevent submit if invalid
                 const form = emailInput.closest('form');
-                if (form) form.addEventListener('submit', function(e){ if (!updateEmail()) { e.preventDefault(); emailInput.focus(); } });
+                if (form) form.addEventListener('submit', function(e) {
+                    if (!updateEmail()) {
+                        e.preventDefault();
+                        emailInput.focus();
+                    }
+                });
             }
 
             if (document.readyState === 'loading') {
@@ -520,6 +527,14 @@
                 initEmailValidation();
             }
         })();
+
+
+
+        const hoy = new Date();
+        hoy.setFullYear(hoy.getFullYear() - 18);
+
+        const maxDate = hoy.toISOString().split('T')[0];
+        document.getElementById('fecha_nacimiento').max = maxDate;
     </script>
 </body>
 

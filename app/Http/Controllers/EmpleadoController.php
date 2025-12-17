@@ -85,7 +85,7 @@ class EmpleadoController extends Controller
             // nombres solo letras y espacios (unicode)
             'nombre' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
             'apellido' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
-            'fecha_nacimiento' => ['required', 'date'],
+            'fecha_nacimiento' => ['required', 'date', 'before_or_equal:today'],
             // teléfono solo dígitos
             'fono' => ['required', 'regex:/^[0-9]+$/', 'max:15'],
             // Validación RFC y DNS para asegurar que el dominio existe
@@ -333,7 +333,7 @@ class EmpleadoController extends Controller
             // nombres solo letras y espacios (unicode)
             'nombre' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
             'apellido' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
-            'fecha_nacimiento' => ['required', 'date'],
+            'fecha_nacimiento' => ['required', 'date', 'before_or_equal:today'],
             // teléfono solo dígitos
             'fono' => ['required', 'regex:/^[0-9]+$/', 'max:15'],
             'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:empleados,email,' . $rutNormalizado . ',rut'],

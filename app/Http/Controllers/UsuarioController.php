@@ -31,7 +31,7 @@ class UsuarioController extends Controller
             'apellido' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:usuarios,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'fecha_nacimiento' => ['required', 'date'],
+            'fecha_nacimiento' => ['required', 'date', 'before_or_equal:today'],
             'estado' => ['sometimes', 'in:activo,inactivo'],
         ]);
 
