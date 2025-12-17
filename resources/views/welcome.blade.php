@@ -22,16 +22,12 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <!-- Logo -->
             <img src="{{ asset('favicon.ico') }}" alt="ServiceLink Logo" class="h-20">
-
-            <h1 class="text-3xl font-extrabold text-blue-600">
-                Service<span class="text-gray-800">Link</span>
-            </h1>
             <nav class="space-x-6">
                 @if (Route::has('login'))
                     @auth
                         <a href="{{ url('/home') }}" class="text-sm text-gray-600 hover:text-blue-600 font-semibold transition duration-150">Panel de Control</a>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-blue-600 font-semibold transition duration-150">Acceso Empleados</a>
+                        <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-blue-600 font-semibold transition duration-150">Acceso Clientes</a>
                         
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="text-sm text-white bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-lg font-semibold transition duration-150 shadow-md">
