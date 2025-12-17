@@ -86,7 +86,7 @@
             </div>
             <!-- End of New Users Section -->
 
-            <!-- Recent Orders Table
+            <!-- Recent Orders Table -->
             <div class="recent-orders">
                 <h2>Ordenes Recientes</h2>
                 <table>
@@ -99,11 +99,27 @@
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                        <!-- 10 más recientes -->
+                        @foreach ($comandas as $comanda)
+                            <tr>
+                                <td>{{ $comanda->mesa->nombre ?? 'Sin Mesas'}}</td>
+                                <td>
+                                    <ul>
+                                        @foreach ($comanda->pedidos as $pedido)
+                                            <li>{{ $pedido->item->nombre ?? 'no disponible'}}</li>
+                                        @endforeach
+                                    </ul>
+                                </td>
+                                <td>{{ $comanda->pedidos->sum('valor_item_ATM') }}</td>
+                                <td>{{ ucfirst($comanda->estado) }}</td>
+                            </tr>
+                        
+                        @endforeach
+                    </tbody>
                 </table>
-                <a href="#">Show All</a>
             </div>
-             End of Recent Orders -->
+             <!-- End of Recent Orders -->
 
         </main>
         <!-- End of Main Content -->

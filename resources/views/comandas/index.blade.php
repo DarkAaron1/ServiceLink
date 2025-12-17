@@ -352,11 +352,6 @@
                 const precio = Number(option.dataset.price || 0);
                 const nombre = option.textContent;
 
-                // si ya existe, sumar cantidad
-                const existingIndex = orderItems.findIndex(i => i.item_id == itemId);
-                if (existingIndex >= 0) {
-                    orderItems[existingIndex].cantidad += cantidad;
-                } else {
                     orderItems.push({
                         item_id: itemId,
                         nombre,
@@ -364,7 +359,6 @@
                         cantidad,
                         observaciones: ''
                     });
-                }
                 selectItem.value = '';
                 itemCantidad.value = 1;
                 renderOrder();
