@@ -8,6 +8,8 @@ use App\Models\Usuario;
 use App\Models\Restaurante;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Comanda;
+use App\Models\Mesas;
 
 class DashboardController extends Controller
 {
@@ -89,7 +91,7 @@ class DashboardController extends Controller
             $Solds = $ventas;
         }
 
-        $ingresos = DB::table('pedidos')->sum('valor_item_ATM');
+        $ingresos = DB::table('pedidos')->where('created_at', '>=', now()->startOfMonth())->sum('valor_item_ATM');
         if (! $ingresos) {
             $IngresosTotales = 'No hay Ingresos Registrados';
         }else{
@@ -98,6 +100,14 @@ class DashboardController extends Controller
 
         $empleados = Empleado::where('restaurante_id', $restauranteId)->get();
 
-        return view('Demo.index', compact('usuario', 'rolName', 'nameSoldProduct' , 'Solds', 'IngresosTotales', 'empleados'));
+        $mesas = Mesas::where('restaurante_id', $restauranteId)->get();
+
+        $comandas = Comanda::whereIn('mesa_id', $mesas->pluck('id')) // Usar whereIn para arrays
+    ->with('mesa', 'pedidos.item')
+    ->orderBy('created_at', 'desc')
+    ->take(10)
+    ->get();
+
+        return view('Demo.index', compact('usuario','comandas', 'rolName', 'nameSoldProduct' , 'Solds', 'IngresosTotales', 'empleados'));
     }
 }
