@@ -68,11 +68,9 @@
                                         style="font-size:0.8rem;  margin-top:0.4rem;">Reserva:
                                         {{ $mesa->detalle_reserva }}</p>
                                 @endif
-                                <button class="btn-small btn-secondary"
-                                    style="margin-top:0.5rem;"
-                                    onclick="window.location='{{ route('detalle_ventas.index', ['mesa' => $mesa->id]) }}'; event.stopPropagation();">
-                                    Ver Comanda Abierta
-                                </button>
+                                <div class="mesa-actions">
+                                    <button type="button" class="button-volver small open-detalle" data-mesa="{{ $mesa->id }}">Ver Comanda Abierta</button>
+                                </div>
                             </div>
                         @endforeach
                     @else
@@ -191,6 +189,50 @@
                 </form>
 
             </div>
+            
+                <!-- Modal: Detalle de Comanda (solo lectura, printable) -->
+                <div id="detalle-venta-modal" class="mesa-modal" role="dialog" aria-modal="true" aria-hidden="true"
+                    tabindex="-1" style="display:none;">
+                    <div class="modal-content" style="padding:2rem; border-radius:12px; width:820px; max-width:none; max-height:80vh; overflow:auto; box-sizing:border-box;">
+                        <button id="close-detalle-venta" class="btn" aria-label="Cerrar">
+                            <span class="material-icons-sharp">close</span>
+                        </button>
+                        <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+                            <div style="display:flex; align-items:center; gap:.6rem;">
+                                <span class="modal-icon material-icons-sharp">receipt_long</span>
+                                <div>
+                                    <h2 id="detalle-mesa-nombre" class="label-dark">Comanda - Mesa</h2>
+                                    <p id="detalle-mesa-estado" class="small"></p>
+                                    <p id="detalle-comanda-obs" class="small" style="margin-top:6px; color:#555;"></p>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:.6rem;">
+                                <button id="print-detalle-btn" class="btn-primary">Imprimir</button>
+                                <button id="liberar-mesa-btn" class="btn" style="background:#e74c3c;color:#fff;border-radius:6px;padding:8px 10px;">Liberar mesa</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:1rem;">
+                            <table class="table order-table" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Cant.</th>
+                                        <th>Precio</th>
+                                        <th>Subtotal</th>
+                                        <th>Obs.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detalle-items-body"></tbody>
+                            </table>
+
+                            <div style="display:flex; justify-content:flex-end; margin-top:1rem; gap:1rem; align-items:center;">
+                                <strong>Total:</strong>
+                                <strong id="detalle-total">$0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
     </main>
     <!-- End of Main Content -->
 
@@ -257,7 +299,10 @@
             }
 
             mesaCards.forEach(card => {
-                card.addEventListener('click', () => {
+                card.addEventListener('click', (e) => {
+                    // Si el click viene desde dentro de .mesa-actions (ej. el botón), no abrir el modal de creación
+                    if (e.target.closest && e.target.closest('.mesa-actions')) return;
+
                     const id = card.dataset.mesaId;
                     const mesaNum = card.querySelector('.mesa-header h4')?.textContent || `Mesa ${id}`;
                     mesaInput.value = id;
@@ -330,6 +375,187 @@
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) hideModal();
             });
+
+            // Attach click handlers for detalle buttons (reliable, avoids inline event issues)
+            document.querySelectorAll('.open-detalle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const mesaId = btn.getAttribute('data-mesa');
+                    if (!mesaId) return;
+                    // Close create modal if open
+                    hideModal();
+                    openDetalleModal(mesaId);
+                });
+            });
+
+            /* ------------------ Detalle de Comanda (modal) ------------------ */
+            const detalleModal = document.getElementById('detalle-venta-modal');
+            const closeDetalle = document.getElementById('close-detalle-venta');
+            const detalleItemsBody = document.getElementById('detalle-items-body');
+            const detalleTotalEl = document.getElementById('detalle-total');
+            const detalleMesaNombre = document.getElementById('detalle-mesa-nombre');
+            const detalleMesaEstado = document.getElementById('detalle-mesa-estado');
+            const printBtn = document.getElementById('print-detalle-btn');
+            const liberarBtn = document.getElementById('liberar-mesa-btn');
+
+            function hideDetalleModal() {
+                if (!detalleModal) return;
+                detalleModal.style.display = 'none';
+                detalleModal.setAttribute('aria-hidden', 'true');
+            }
+
+            if (closeDetalle) closeDetalle.addEventListener('click', hideDetalleModal);
+            if (detalleModal) detalleModal.addEventListener('click', (e) => { if (e.target === detalleModal) hideDetalleModal(); });
+
+            async function openDetalleModal(mesaId) {
+                try {
+                    const resp = await fetch(`/detalle-ventas/mesa/${mesaId}`, { headers: { 'Accept': 'application/json' } });
+                    if (!resp.ok) {
+                        const txt = await resp.text();
+                        alert('No se pudo obtener la comanda: ' + (txt || resp.statusText));
+                        return;
+                    }
+                    const data = await resp.json();
+
+                    // Normalize response: prefer grouped_pedidos shape
+                    let items = [];
+                    let mesaName = '';
+                    let estado = '';
+                    let observacionesGlobal = '';
+                    let total = 0;
+
+                    if (data.grouped_pedidos && Array.isArray(data.grouped_pedidos)) {
+                        items = data.grouped_pedidos;
+                        mesaName = data.mesa ?? '';
+                        estado = data.estado ?? '';
+                        observacionesGlobal = data.observaciones_global ?? '';
+                        total = data.total ?? 0;
+                    } else {
+                        // backward-compat: single comanda/comandas shape
+                        let comanda = null;
+                        if (data.comandas && Array.isArray(data.comandas) && data.comandas.length) comanda = data.comandas[0];
+                        else if (data.comanda) comanda = data.comanda;
+                        if (!comanda) {
+                            alert('No se encontró la comanda en la respuesta');
+                            return;
+                        }
+                        mesaName = comanda.mesa ?? '';
+                        estado = comanda.estado ?? '';
+                        observacionesGlobal = comanda.observaciones_global || '';
+
+                        if (comanda.pedidos && comanda.pedidos.length) {
+                            items = comanda.pedidos.map(p => ({
+                                item_id: p.item_id ?? null,
+                                nombre: p.nombre ?? 'N/A',
+                                cantidad: p.cantidad ?? 1,
+                                precio_unitario: p.precio ?? p.valor_item_ATM ?? 0,
+                                subtotal: p.subtotal ?? ((p.precio ?? 0) * (p.cantidad ?? 1)),
+                                observaciones: p.observaciones ?? ''
+                            }));
+                        }
+                        total = comanda.total ?? items.reduce((acc, it) => acc + (it.subtotal || 0), 0);
+                    }
+
+                    // Render
+                    detalleMesaNombre.textContent = `Comanda - Mesa ${mesaName}`;
+                    detalleMesaEstado.textContent = `Estado: ${estado}`;
+
+                    const detalleObsEl = document.getElementById('detalle-comanda-obs');
+                    if (detalleObsEl) {
+                        detalleObsEl.textContent = observacionesGlobal || '';
+                        detalleObsEl.style.display = observacionesGlobal ? 'block' : 'none';
+                    }
+
+                    detalleItemsBody.innerHTML = '';
+                    if (!items || !items.length) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td colspan="5" style="text-align:center; padding:1.2rem; color:#666;">No hay consumo registrado para esta comanda.</td>`;
+                        detalleItemsBody.appendChild(tr);
+                    } else {
+                        items.forEach(p => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${p.nombre}</td>
+                                <td>${p.cantidad}</td>
+                                <td>${formatCurrency(p.precio_unitario ?? p.precio ?? 0)}</td>
+                                <td>${formatCurrency(p.subtotal ?? ((p.precio_unitario ?? p.precio ?? 0) * (p.cantidad ?? 1)))}</td>
+                                <td>${p.observaciones ?? ''}</td>
+                            `;
+                            detalleItemsBody.appendChild(tr);
+                        });
+                    }
+
+                    detalleTotalEl.textContent = formatCurrency(total || 0);
+
+                    // attach print
+                    if (printBtn) {
+                        printBtn.onclick = () => {
+                            const win = window.open('', '_blank');
+                            const styles = `
+                                <style>
+                                    body{font-family:Arial,Helvetica,sans-serif;padding:20px}
+                                    table{width:100%;border-collapse:collapse}
+                                    th,td{padding:8px;border:1px solid #ddd;text-align:left}
+                                    th{background:#f6f6f6}
+                                </style>`;
+                            const rows = (items || []).map(p => `<tr><td>${p.nombre}</td><td>${p.cantidad}</td><td>${formatCurrency(p.precio_unitario ?? p.precio ?? 0)}</td><td>${formatCurrency(p.subtotal ?? ((p.precio_unitario ?? p.precio ?? 0) * (p.cantidad ?? 1)))}</td></tr>`).join('');
+                            const html = `<!doctype html><html><head><meta charset="utf-8"><title>Comanda Mesa ${mesaName}</title>${styles}</head><body><h2>Comanda - Mesa ${mesaName ?? ''}</h2><p>Estado: ${estado ?? ''}</p><table><thead><tr><th>Item</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table><h3>Total: ${formatCurrency(total || 0)}</h3></body></html>`;
+                            win.document.write(html);
+                            win.document.close();
+                            win.focus();
+                            // Small timeout to ensure resources render
+                            setTimeout(() => { win.print(); }, 300);
+                        };
+                    }
+
+                    // attach liberar (close) action
+                    if (liberarBtn) {
+                        // disable if not abierta
+                        if (estado && estado.toLowerCase() !== 'abierta') {
+                            liberarBtn.disabled = true;
+                            liberarBtn.style.opacity = '0.6';
+                            liberarBtn.title = 'Solo se puede liberar una mesa con comanda abierta';
+                        } else {
+                            liberarBtn.disabled = false;
+                            liberarBtn.style.opacity = '';
+                            liberarBtn.title = '';
+                        }
+
+                        liberarBtn.onclick = async () => {
+                            if (!confirm('¿Confirma liberar la mesa?')) return;
+                            try {
+                                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                                const resp = await fetch(`/detalle-ventas/mesa/${mesaId}/liberar`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': token,
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({})
+                                });
+                                if (!resp.ok) {
+                                    const txt = await resp.text();
+                                    alert('No se pudo liberar la mesa: ' + (txt || resp.statusText));
+                                    return;
+                                }
+                                alert('Mesa liberada correctamente.');
+                                hideDetalleModal();
+                                location.reload();
+                            } catch (err) {
+                                console.error(err);
+                                alert('Error al liberar la mesa');
+                            }
+                        };
+                    }
+
+                    detalleModal.style.display = 'flex';
+                    detalleModal.setAttribute('aria-hidden', 'false');
+                } catch (err) {
+                    console.error(err);
+                    alert('Error al obtener la comanda');
+                }
+            }
         })();
     </script>
 </body>
